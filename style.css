@@ -641,3 +641,439 @@ footer {
         grid-template-columns: 1fr;
     }
 }
+
+/* ==========================================
+   NETBILL ANALYTICS DASHBOARD
+   ========================================== */
+
+#netbillAnalytics {
+    margin-top: 25px;
+}
+
+.nb-welcome {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    background: linear-gradient(120deg, #142b4a, #24558a);
+    color: white;
+    padding: 27px;
+    border-radius: 14px;
+    margin-bottom: 22px;
+}
+
+.nb-eyebrow {
+    color: #9cc8ff;
+    font-size: 10px;
+    letter-spacing: 1.7px;
+    font-weight: 800;
+}
+
+.nb-welcome h2 {
+    margin: 7px 0;
+    font-size: 25px;
+}
+
+.nb-welcome p {
+    color: #d5e4f5;
+    font-size: 13px;
+}
+
+.nb-today {
+    color: #e0edff;
+    font-size: 12px;
+    text-align: right;
+}
+
+.nb-insight-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 17px;
+    margin-bottom: 22px;
+}
+
+.nb-insight-card {
+    background: white;
+    padding: 21px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(15,23,42,0.04);
+    min-width: 0;
+}
+
+.nb-insight-card span,
+.nb-insight-card small {
+    display: block;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.nb-insight-card strong {
+    display: block;
+    color: #142b4a;
+    font-size: 21px;
+    margin: 10px 0 5px;
+    overflow-wrap: anywhere;
+}
+
+.nb-chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    margin-bottom: 22px;
+}
+
+.nb-chart-card,
+.nb-panel {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 13px;
+    padding: 23px;
+    box-shadow: 0 3px 12px rgba(15,23,42,0.04);
+    min-width: 0;
+}
+
+.nb-chart-heading,
+.nb-panel-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.nb-chart-heading h3,
+.nb-panel h3,
+.nb-panel-heading h3 {
+    color: #142b4a;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.nb-chart-heading p,
+.nb-panel-subtitle {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.nb-chart-tag {
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 6px 9px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.nb-bar-chart {
+    height: 210px;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    gap: 8px;
+    padding-top: 20px;
+}
+
+.nb-bar-column {
+    height: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 0;
+}
+
+.nb-bar-value {
+    font-size: 9px;
+    color: #64748b;
+    margin-bottom: 7px;
+    text-align: center;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+}
+
+.nb-bar-track {
+    height: 125px;
+    width: 65%;
+    background: #f1f5f9;
+    border-radius: 7px 7px 0 0;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+}
+
+.nb-bar-fill {
+    width: 100%;
+    background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+    border-radius: 6px 6px 0 0;
+    transition: height 0.4s ease;
+}
+
+.nb-growth-fill {
+    background: linear-gradient(180deg, #2dd4bf, #0d9488);
+}
+
+.nb-bar-column > span {
+    color: #64748b;
+    font-size: 11px;
+    margin-top: 9px;
+}
+
+.nb-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    margin-bottom: 22px;
+}
+
+.nb-status-total {
+    color: #142b4a;
+    font-size: 34px;
+    font-weight: 800;
+    margin-top: 20px;
+}
+
+.nb-status-caption {
+    color: #64748b;
+    font-size: 12px;
+    margin-bottom: 20px;
+}
+
+.nb-status-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 14px 0 8px;
+    font-size: 12px;
+    color: #475569;
+}
+
+.nb-status-line strong {
+    color: #142b4a;
+}
+
+.nb-progress {
+    width: 100%;
+    height: 9px;
+    background: #f1f5f9;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.nb-progress-active,
+.nb-progress-expired {
+    height: 100%;
+    border-radius: 20px;
+}
+
+.nb-progress-active {
+    background: #16a34a;
+}
+
+.nb-progress-expired {
+    background: #ef4444;
+}
+
+.nb-outstanding-amount {
+    font-size: 26px;
+    font-weight: 800;
+    color: #d97706;
+    margin: 27px 0;
+    overflow-wrap: anywhere;
+}
+
+.nb-outstanding-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.nb-small-action {
+    background: #eff6ff;
+    color: #2563eb;
+    border: none;
+    padding: 8px 11px;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.nb-small-action:hover {
+    background: #dbeafe;
+}
+
+.nb-recent-panel {
+    margin-bottom: 22px;
+}
+
+.nb-recent-list {
+    margin-top: 15px;
+}
+
+.nb-payment-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 0;
+    border-bottom: 1px solid #edf1f5;
+}
+
+.nb-payment-row:last-child {
+    border-bottom: none;
+}
+
+.nb-payment-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #e0f2fe;
+    color: #0369a1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 10px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.nb-payment-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.nb-payment-info strong,
+.nb-payment-info span {
+    display: block;
+}
+
+.nb-payment-info strong {
+    color: #1e293b;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+.nb-payment-info span {
+    color: #64748b;
+    font-size: 11px;
+}
+
+.nb-payment-amount {
+    color: #15803d;
+    font-size: 12px;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+.nb-empty-message {
+    color: #64748b;
+    font-size: 13px;
+    padding: 15px 0;
+}
+
+.nb-quick-actions {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 13px;
+    padding: 23px;
+    box-shadow: 0 3px 12px rgba(15,23,42,0.04);
+}
+
+.nb-quick-actions h3 {
+    color: #142b4a;
+    font-size: 16px;
+}
+
+.nb-quick-actions p {
+    color: #64748b;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.nb-action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.nb-action-buttons button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 11px 15px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.nb-action-buttons button:hover {
+    background: #1d4ed8;
+}
+
+/* ANALYTICS TABLET AND MOBILE */
+
+@media (max-width: 900px) {
+    .nb-chart-grid,
+    .nb-detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 650px) {
+    .nb-welcome {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 21px;
+    }
+
+    .nb-welcome h2 {
+        font-size: 21px;
+    }
+
+    .nb-today {
+        text-align: left;
+    }
+
+    .nb-insight-grid {
+        grid-template-columns: 1fr;
+        gap: 11px;
+    }
+
+    .nb-chart-card,
+    .nb-panel,
+    .nb-quick-actions {
+        padding: 17px;
+    }
+
+    .nb-bar-chart {
+        gap: 4px;
+    }
+
+    .nb-bar-track {
+        width: 75%;
+    }
+
+    .nb-bar-value {
+        font-size: 8px;
+    }
+
+    .nb-payment-row {
+        gap: 8px;
+    }
+
+    .nb-payment-amount {
+        font-size: 11px;
+    }
+
+    .nb-action-buttons {
+        flex-direction: column;
+    }
+
+    .nb-action-buttons button {
+        width: 100%;
+    }
+}
