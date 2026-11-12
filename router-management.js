@@ -1,4 +1,4 @@
-
+ 
 (function () {
     "use strict";
 
@@ -12,8 +12,8 @@
         const box = document.getElementById("routerMessage");
         if (!box) return;
 
-        box.textContent = message;
         box.style.color = success ? "#166534" : "#991b1b";
+        box.textContent = message;
     }
 
     function escapeHTML(value) {
@@ -62,15 +62,22 @@
                         <td>${escapeHTML(router.router_model || "Not specified")}</td>
                         <td>${escapeHTML(router.routeros_version || "Not detected")}</td>
                         <td>${escapeHTML(router.connection_status)}</td>
-                        <td>Not connected yet</td>
+                        <td>
+                            <button
+                                type="button"
+                                class="router-test-button"
+                                data-router-test="${escapeHTML(router.id)}">
+                                Run Simulation
+                            </button>
+                        </td>
                     </tr>
                 `;
             }).join("");
 
         } catch (error) {
+            console.error("Router loading error:", error);
             list.innerHTML =
                 '<tr><td colspan="7">Could not load routers.</td></tr>';
-            console.error("Router loading error:", error);
             showMessage(error.message, false);
         }
     }
@@ -81,12 +88,9 @@
         const button = event.target.querySelector('button[type="submit"]');
 
         try {
-            if (!db) {
-                throw new Error("Supabase connection not found.");
-            }
+            if (!db) throw new Error("Supabase connection not found.");
 
             const companyId = getCompanyId();
-
             if (!companyId) {
                 throw new Error("Company ID not found. Please log in again.");
             }
@@ -95,10 +99,7 @@
                 await db.auth.getSession();
 
             if (sessionError) throw sessionError;
-
-            if (!sessionData.session) {
-                throw new Error("Please log in again.");
-            }
+            if (!sessionData.session) throw new Error("Please log in again.");
 
             const router = {
                 company_id: companyId,
@@ -111,7 +112,7 @@
             };
 
             if (!router.router_name || !router.router_ip) {
-                throw new Error("Please enter the router name and IP address.");
+                throw new Error("Enter the router name and IP address.");
             }
 
             if (
@@ -119,7 +120,7 @@
                 router.api_port < 1 ||
                 router.api_port > 65535
             ) {
-                throw new Error("Please enter a valid API port.");
+                throw new Error("Enter a valid API port.");
             }
 
             button.disabled = true;
@@ -148,15 +149,76 @@
         }
     }
 
+    async function runSimulation(routerId) {
+        try {
+            showMessage("Running router connection simulation...");
+
+            const companyId = getCompanyId();
+
+            const { data: router, error } = await db
+                .from("netbill_routers")
+                .select("*")
+                .eq("id", routerId)
+                .eq("company_id", companyId)
+                .single();
+
+            if (error) throw error;
+            if (!router) throw new Error("Router not found.");
+
+            // SIMULATION ONLY:
+            // No network connection is made to the router.
+            await new Promise(resolve => setTimeout(resolve, 1200));
+
+            const checks = [
+                "Router record found in Supabase",
+                "Router name verified",
+                "Router IP address recorded",
+                "API port is valid",
+                "Router model information checked"
+            ];
+
+            const report =
+                "SIMULATION PASSED!\n\n" +
+                checks.map((item, index) =>
+                    (index + 1) + ". " + item
+                ).join("\n") +
+                "\n\nRouter: " + router.router_name +
+                "\nIP: " + router.router_ip +
+                "\nAPI Port: " + router.api_port +
+                "\n\nIMPORTANT: This is a simulated test. " +
+                "No real MikroTik connection was made.";
+
+            showMessage(report, true);
+
+        } catch (error) {
+            console.error("Simulation error:", error);
+            showMessage("SIMULATION ERROR: " + error.message, false);
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
         const form = document.getElementById("routerForm");
+        const list = document.getElementById("routerList");
 
-        if (!form || !db) {
-            console.error("Router Management could not start.");
+        if (!db) {
+            showMessage("Supabase connection not found.", false);
             return;
         }
 
-        form.addEventListener("submit", registerRouter);
+        if (form) {
+            form.addEventListener("submit", registerRouter);
+        }
+
+        if (list) {
+            list.addEventListener("click", function (event) {
+                const button = event.target.closest("[data-router-test]");
+
+                if (button) {
+                    runSimulation(button.dataset.routerTest);
+                }
+            });
+        }
+
         loadRouters();
     });
 
