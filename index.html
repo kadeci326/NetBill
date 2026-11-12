@@ -50,17 +50,14 @@
                     <h3>Total Customers</h3>
                     <p id="totalCustomers">0</p>
                 </div>
-
                 <div class="card">
                     <h3>Active Customers</h3>
                     <p id="activeCustomers">0</p>
                 </div>
-
                 <div class="card">
                     <h3>Expired Customers</h3>
                     <p id="expiredCustomers">0</p>
                 </div>
-
                 <div class="card">
                     <h3>Total Revenue</h3>
                     <p id="totalRevenue">Ksh 0.00</p>
@@ -107,7 +104,6 @@
 
             <div class="table-container">
                 <h3>Registered Customers</h3>
-
                 <table>
                     <thead>
                         <tr>
@@ -140,39 +136,17 @@
                 <h3>Register New Router</h3>
 
                 <form id="routerForm">
-
                     <label>Router Name</label>
-                    <input
-                        type="text"
-                        id="routerName"
-                        placeholder="e.g. Main Office Router"
-                        required
-                    >
+                    <input type="text" id="routerName" placeholder="e.g. Main Office Router" required>
 
                     <label>Router IP Address or Hostname</label>
-                    <input
-                        type="text"
-                        id="routerIP"
-                        placeholder="e.g. 192.168.88.1"
-                        required
-                    >
+                    <input type="text" id="routerIP" placeholder="e.g. 192.168.88.1" required>
 
                     <label>Router API Port</label>
-                    <input
-                        type="number"
-                        id="routerPort"
-                        value="8729"
-                        min="1"
-                        max="65535"
-                        required
-                    >
+                    <input type="number" id="routerPort" value="8729" min="1" max="65535" required>
 
                     <label>Router Model (Optional)</label>
-                    <input
-                        type="text"
-                        id="routerModel"
-                        placeholder="e.g. hEX, RB4011, CCR"
-                    >
+                    <input type="text" id="routerModel" placeholder="e.g. hEX, RB4011, CCR">
 
                     <p class="router-security-note">
                         Secure API credentials will be configured separately.
@@ -180,9 +154,7 @@
                     </p>
 
                     <button type="submit">Register Router</button>
-
                     <p id="routerMessage"></p>
-
                 </form>
             </div>
 
@@ -201,13 +173,8 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
-
                     <tbody id="routerList">
-                        <tr>
-                            <td colspan="7">
-                                No routers registered yet.
-                            </td>
-                        </tr>
+                        <tr><td colspan="7">No routers registered yet.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -224,14 +191,95 @@
             </div>
         </section>
 
-        <!-- PPPOE -->
+        <!-- PPPOE MANAGEMENT -->
         <section class="page" id="pppoe" style="display:none;">
             <h2>PPPoE Management</h2>
 
+            <div class="dashboard-cards">
+                <div class="card">
+                    <h3>Total PPPoE Accounts</h3>
+                    <p id="pppoeTotal">0</p>
+                </div>
+                <div class="card">
+                    <h3>Active Accounts</h3>
+                    <p id="pppoeActive">0</p>
+                </div>
+                <div class="card">
+                    <h3>Suspended Accounts</h3>
+                    <p id="pppoeSuspended">0</p>
+                </div>
+                <div class="card">
+                    <h3>Expired Accounts</h3>
+                    <p id="pppoeExpired">0</p>
+                </div>
+            </div>
+
             <div class="card">
-                <h3>PPPoE Connections</h3>
-                <p>Manage customers using PPPoE internet connections.</p>
-                <p>MikroTik integration will be connected through Router Management.</p>
+                <h3>About PPPoE</h3>
+                <p>Create and manage PPPoE customer accounts, assign internet packages and monitor subscription status.</p>
+                <p><strong>Router connection:</strong> Real MikroTik provisioning will be added through the secure NetBill backend.</p>
+            </div>
+
+            <div class="form-container">
+                <h3>Create PPPoE Account</h3>
+
+                <form id="pppoeForm">
+
+                    <label>Select Customer</label>
+                    <select id="pppoeCustomer" required>
+                        <option value="">Select PPPoE Customer</option>
+                    </select>
+
+                    <label>PPPoE Username</label>
+                    <input type="text" id="pppoeUsername"
+                        placeholder="e.g. customer001" required>
+
+                    <label>Internet Package</label>
+                    <select id="pppoePackage" required>
+                        <option value="">Select PPPoE Package</option>
+                    </select>
+
+                    <label>Subscription Start Date</label>
+                    <input type="date" id="pppoeStartDate" required>
+
+                    <label>Subscription Expiry Date</label>
+                    <input type="date" id="pppoeExpiryDate" required>
+
+                    <label>Account Status</label>
+                    <select id="pppoeStatus" required>
+                        <option value="Pending">Pending</option>
+                        <option value="Active">Active</option>
+                        <option value="Suspended">Suspended</option>
+                        <option value="Expired">Expired</option>
+                    </select>
+
+                    <p id="pppoeMessage"></p>
+
+                    <button type="submit">Create PPPoE Account</button>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <h3>Registered PPPoE Accounts</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Username</th>
+                            <th>Package</th>
+                            <th>Start Date</th>
+                            <th>Expiry Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pppoeList">
+                        <tr>
+                            <td colspan="7">No PPPoE accounts registered yet.</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </section>
 
@@ -274,7 +322,6 @@
 
             <div class="table-container">
                 <h3>Available Internet Packages</h3>
-
                 <table>
                     <thead>
                         <tr>
@@ -325,7 +372,6 @@
 
             <div class="table-container">
                 <h3>Payment History</h3>
-
                 <table>
                     <thead>
                         <tr>
@@ -370,7 +416,6 @@
 
             <div class="table-container">
                 <h3>Generated Invoices</h3>
-
                 <table>
                     <thead>
                         <tr>
@@ -436,6 +481,7 @@
 <script src="company-profile.js" defer></script>
 <script src="netbill-cloud.js" defer></script>
 <script src="router-management.js" defer></script>
+<script src="pppoe-management.js" defer></script>
 <script src="dashboard-analytics.js" defer></script>
 
 </body>
