@@ -1,0 +1,285 @@
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NetBill Payment Transfer</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #eef2f7;
+    padding: 20px;
+}
+.container {
+    max-width: 550px;
+    margin: 30px auto;
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px #0001;
+}
+h2 { color: #075985; }
+label { display: block; margin-top: 15px; font-weight: bold; }
+input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 7px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+button {
+    width: 100%;
+    padding: 13px;
+    margin-top: 15px;
+    background: #0369a1;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+button:disabled { background: #94a3b8; cursor: not-allowed; }
+#message {
+    margin-top: 18px;
+    padding: 12px;
+    background: #f1f5f9;
+    border-radius: 6px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+hr { margin-top: 25px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h2>NetBill Payment Transfer</h2>
+
+    <p>Connect your owner account to transfer payments into Supabase.</p>
+
+    <label>Owner Email</label>
+    <input type="email" id="email" placeholder="Enter owner email">
+
+    <label>Owner Password</label>
+    <input type="password" id="password" placeholder="Enter owner password">
+
+    <button id="loginButton" type="button">Connect Owner Account</button>
+
+    <hr>
+
+    <label>Company ID</label>
+    <input type="text" id="companyId" placeholder="Paste your Company ID">
+
+    <label>NetBill Backup JSON</label>
+    <input type="file" id="backupFile" accept=".json,application/json">
+
+    <button id="verifyButton" type="button">Verify Backup</button>
+    <button id="transferButton" type="button">Transfer Payments</button>
+
+    <div id="message">Checking Supabase connection...</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase-config.js"></script>
+
+<script>
+let currentUser = null;
+let backupPayments = [];
+let verified = false;
+
+const message = document.getElementById("message");
+const loginButton = document.getElementById("loginButton");
+const verifyButton = document.getElementById("verifyButton");
+const transferButton = document.getElementById("transferButton");
+
+function show(text) {
+    message.textContent = text;
+}
+
+function getDatabase() {
+    if (!window.supabase) {
+        throw new Error("Supabase library did not load. Check your internet connection.");
+    }
+
+    if (!window.netbillSupabase) {
+        throw new Error("Supabase configuration not found. Check supabase-config.js.");
+    }
+
+    return window.netbillSupabase;
+}
+
+try {
+    getDatabase();
+    show("Supabase connection loaded successfully. Please log in.");
+} catch (error) {
+    show("CONNECTION ERROR: " + error.message);
+}
+
+loginButton.addEventListener("click", async function () {
+    try {
+        const db = getDatabase();
+
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+
+        if (!email || !password) {
+            show("Please enter your owner email and password.");
+            return;
+        }
+
+        loginButton.disabled = true;
+        show("Connecting to your owner account...");
+
+        const { data, error } = await db.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+
+        if (error) throw error;
+
+        currentUser = data.user;
+
+        show("SUCCESS! Connected as company owner:\n" + currentUser.email);
+
+    } catch (error) {
+        show("LOGIN FAILED:\n" + error.message);
+    } finally {
+        loginButton.disabled = false;
+    }
+});
+
+verifyButton.addEventListener("click", async function () {
+    try {
+        const db = getDatabase();
+        verified = false;
+
+        if (!currentUser) {
+            throw new Error("Please connect your owner account first.");
+        }
+
+        const companyId = document.getElementById("companyId").value.trim();
+        const file = document.getElementById("backupFile").files[0];
+
+        if (!companyId || !file) {
+            throw new Error("Enter your Company ID and select your backup file.");
+        }
+
+        show("Checking company ownership and reading backup...");
+
+        const { data: company, error: companyError } = await db
+            .from("netbill_companies")
+            .select("id")
+            .eq("id", companyId)
+            .eq("owner_id", currentUser.id)
+            .maybeSingle();
+
+        if (companyError) throw companyError;
+        if (!company) throw new Error("Company ownership could not be verified.");
+
+        const backup = JSON.parse(await file.text());
+        const savedData = backup.data || backup;
+
+        backupPayments = JSON.parse(savedData.netbillPayments || "[]");
+
+        if (!Array.isArray(backupPayments) || backupPayments.length === 0) {
+            throw new Error("No payment records were found in the backup.");
+        }
+
+        verified = true;
+
+        show(
+            "BACKUP VERIFIED SUCCESSFULLY!\n\n" +
+            "Payments found: " + backupPayments.length +
+            "\nCompany ownership verified.\n\n" +
+            "You can now transfer your payments."
+        );
+
+    } catch (error) {
+        show("VERIFICATION FAILED:\n" + error.message);
+    }
+});
+
+transferButton.addEventListener("click", async function () {
+    try {
+        const db = getDatabase();
+
+        if (!verified || !currentUser) {
+            throw new Error("Connect your owner account and verify your backup first.");
+        }
+
+        const companyId = document.getElementById("companyId").value.trim();
+
+        show("Checking existing payments...");
+
+        const { data: existing, error: existingError } = await db
+            .from("netbill_payments")
+            .select("id")
+            .eq("company_id", companyId)
+            .limit(1);
+
+        if (existingError) throw existingError;
+
+        if (existing && existing.length > 0) {
+            throw new Error("Payments already exist for this company. Transfer stopped to prevent duplicates.");
+        }
+
+        show("Matching payments with your transferred customers...");
+
+        const { data: customers, error: customerError } = await db
+            .from("netbill_customers")
+            .select("id, customer_data")
+            .eq("company_id", companyId);
+
+        if (customerError) throw customerError;
+
+        const rows = [];
+
+        for (const payment of backupPayments) {
+            const originalCustomerId =
+                payment.customerId ??
+                payment.customer_id ??
+                payment.customer?.id;
+
+            if (originalCustomerId === undefined || originalCustomerId === null) {
+                throw new Error("A payment has no customer ID. No records were inserted.");
+            }
+
+            const customer = customers.find(row =>
+                String((row.customer_data || {}).id) === String(originalCustomerId)
+            );
+
+            if (!customer) {
+                throw new Error(
+                    "Could not match a payment to its original customer ID: " +
+                    originalCustomerId +
+                    ". No records were inserted."
+                );
+            }
+
+            rows.push({
+                company_id: companyId,
+                customer_id: customer.id,
+                payment_data: payment
+            });
+        }
+
+        show("Uploading " + rows.length + " payments...");
+
+        const { error: insertError } = await db
+            .from("netbill_payments")
+            .insert(rows);
+
+        if (insertError) throw insertError;
+
+        show("SUCCESS! " + rows.length + " payments transferred to Supabase.");
+
+    } catch (error) {
+        show("PAYMENT TRANSFER FAILED:\n" + error.message);
+    }
+});
+</script>
+
+</body>
+</html>

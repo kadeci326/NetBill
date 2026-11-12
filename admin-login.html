@@ -1,0 +1,264 @@
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NetBill Administrator Login</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background: #eef2f7;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    width: 100%;
+    max-width: 430px;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+}
+
+h1 {
+    text-align: center;
+    color: #123b68;
+}
+
+.subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 25px;
+}
+
+label {
+    display: block;
+    margin-top: 14px;
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+}
+
+button {
+    cursor: pointer;
+}
+
+.submit-btn {
+    width: 100%;
+    margin-top: 22px;
+    padding: 13px;
+    background: #123b68;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+#message {
+    display: none;
+    margin-top: 18px;
+    padding: 12px;
+    border-radius: 6px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+#message.success {
+    display: block;
+    background: #e4f7e9;
+    color: #17652b;
+}
+
+#message.error {
+    display: block;
+    background: #ffe8e8;
+    color: #a32121;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>NETBILL</h1>
+    <p class="subtitle">ISP Billing & Management System</p>
+
+    <h3>Administrator Login</h3>
+
+    <form id="loginForm">
+
+        <label>Email Address</label>
+        <input
+            type="email"
+            id="loginEmail"
+            placeholder="Enter your owner email"
+            required
+        >
+
+        <label>Password</label>
+        <input
+            type="password"
+            id="loginPassword"
+            placeholder="Enter your owner password"
+            required
+        >
+
+        <button type="submit" class="submit-btn" id="loginButton">
+            LOGIN
+        </button>
+
+    </form>
+
+    <div id="message"></div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase-config.js"></script>
+
+<script>
+
+const loginForm = document.getElementById("loginForm");
+const loginButton = document.getElementById("loginButton");
+const message = document.getElementById("message");
+
+function showMessage(text, type) {
+    message.textContent = text;
+    message.className = type;
+}
+
+function getDatabase() {
+
+    if (!window.supabase) {
+        throw new Error("Supabase library did not load. Check your internet connection.");
+    }
+
+    if (!window.netbillSupabase) {
+        throw new Error("Supabase configuration was not found.");
+    }
+
+    return window.netbillSupabase;
+}
+
+loginForm.addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+    loginButton.disabled = true;
+    loginButton.textContent = "CONNECTING...";
+
+    try {
+
+        const db = getDatabase();
+
+        const email = document.getElementById("loginEmail")
+            .value.trim().toLowerCase();
+
+        const password = document.getElementById("loginPassword").value;
+
+        if (!email || !password) {
+            throw new Error("Enter your email and password.");
+        }
+
+        showMessage("Connecting to Supabase...", "success");
+
+        // AUTHENTICATE OWNER
+        const { data, error } = await db.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+
+        if (error) throw error;
+
+        const currentUser = data.user;
+
+        if (!currentUser) {
+            throw new Error("Login failed. No authenticated user was returned.");
+        }
+
+        showMessage(
+            "Login successful. Checking your company account...",
+            "success"
+        );
+
+        // FIND THE EXISTING COMPANY
+        const { data: company, error: companyError } = await db
+            .from("netbill_companies")
+            .select("id, company_name")
+            .eq("owner_id", currentUser.id)
+            .maybeSingle();
+
+        if (companyError) throw companyError;
+
+        if (!company) {
+            await db.auth.signOut();
+
+            throw new Error(
+                "Your company record could not be found. Please check your Supabase company ownership."
+            );
+        }
+
+        // SAVE OWNER AND COMPANY INFORMATION
+        localStorage.setItem("netbillCompanyId", company.id);
+        localStorage.setItem("netbillOwnerId", currentUser.id);
+        localStorage.setItem("netbillOwnerEmail", currentUser.email);
+        localStorage.setItem("netbillCloudCompanyName", company.company_name);
+
+        // KEEP EXISTING DASHBOARD SECURITY CHECK WORKING
+        sessionStorage.setItem("netbillAdminLoggedIn", "true");
+
+        showMessage(
+            "SUCCESS!\n\n" +
+            "Connected as: " + currentUser.email +
+            "\nCompany: " + company.company_name +
+            "\n\nOpening NetBill dashboard...",
+            "success"
+        );
+
+        setTimeout(function() {
+            window.location.href = "index.html";
+        }, 1200);
+
+    } catch (error) {
+
+        showMessage(
+            "LOGIN FAILED:\n" + error.message,
+            "error"
+        );
+
+    } finally {
+
+        loginButton.disabled = false;
+        loginButton.textContent = "LOGIN";
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>

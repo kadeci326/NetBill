@@ -1,0 +1,212 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NetBill Customer Transfer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            padding: 20px;
+        }
+        .container {
+            max-width: 550px;
+            margin: 25px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+        }
+        input, button {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 13px;
+            margin: 9px 0;
+        }
+        input {
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        button {
+            background: #087bda;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:disabled { opacity: .5; }
+        #result { white-space: pre-wrap; overflow-wrap: anywhere; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>NetBill Customer Transfer</h2>
+
+    <h3>1. Company Owner Login</h3>
+    <input type="email" id="email" placeholder="Owner email">
+    <input type="password" id="password" placeholder="Owner password">
+    <button id="loginButton">Login to Supabase</button>
+    <p id="loginStatus">Not connected.</p>
+
+    <hr>
+
+    <h3>2. Select NetBill Backup</h3>
+    <input type="file" id="backupFile" accept=".json">
+
+    <h3>3. Company ID</h3>
+    <input type="text" id="companyId" placeholder="Paste Company ID">
+
+    <button id="checkButton" disabled>Check Customers</button>
+
+    <p id="result">Waiting for login and backup.</p>
+
+    <button id="transferButton" disabled>
+        Transfer Customers to Supabase
+    </button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase-config.js"></script>
+
+<script>
+const db = window.netbillSupabase;
+
+let currentUser = null;
+let backupCustomers = [];
+
+const loginButton = document.getElementById("loginButton");
+const checkButton = document.getElementById("checkButton");
+const transferButton = document.getElementById("transferButton");
+const loginStatus = document.getElementById("loginStatus");
+const result = document.getElementById("result");
+
+loginButton.onclick = async function () {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    if (!db) {
+        loginStatus.textContent = "Supabase connection not found.";
+        return;
+    }
+
+    if (!email || !password) {
+        loginStatus.textContent = "Enter your email and password.";
+        return;
+    }
+
+    loginButton.disabled = true;
+    loginStatus.textContent = "Signing in...";
+
+    try {
+        const { data, error } = await db.auth.signInWithPassword({
+            email,
+            password
+        });
+
+        if (error) throw error;
+
+        currentUser = data.user;
+        loginStatus.textContent =
+            "Connected as: " + currentUser.email;
+
+        checkButton.disabled = false;
+
+    } catch (error) {
+        loginStatus.textContent = "LOGIN FAILED: " + error.message;
+    } finally {
+        loginButton.disabled = false;
+    }
+};
+
+checkButton.onclick = async function () {
+    transferButton.disabled = true;
+
+    try {
+        const file = document.getElementById("backupFile").files[0];
+        const companyId = document.getElementById("companyId").value.trim();
+
+        if (!file || !companyId) {
+            throw new Error("Select your backup and enter your Company ID.");
+        }
+
+        const backup = JSON.parse(await file.text());
+
+        backupCustomers = JSON.parse(
+            backup.data.netbillCustomers || "[]"
+        );
+
+        if (!Array.isArray(backupCustomers)) {
+            throw new Error("Invalid customer data.");
+        }
+
+        const { data: company, error } = await db
+            .from("netbill_companies")
+            .select("id")
+            .eq("id", companyId)
+            .eq("owner_id", currentUser.id)
+            .maybeSingle();
+
+        if (error) throw error;
+        if (!company) throw new Error("Company ownership could not be verified.");
+
+        result.textContent =
+            "CUSTOMERS VERIFIED!\n\n" +
+            "Customers found: " + backupCustomers.length +
+            "\nCompany ownership verified." +
+            "\n\nExisting customer records will be preserved inside customer_data." +
+            "\nCustomer portal accounts will be linked separately.";
+
+        transferButton.disabled = backupCustomers.length === 0;
+
+    } catch (error) {
+        result.textContent = "CHECK FAILED: " + error.message;
+    }
+};
+
+transferButton.onclick = async function () {
+    transferButton.disabled = true;
+    result.textContent = "Transferring customers...";
+
+    try {
+        const companyId = document.getElementById("companyId").value.trim();
+
+        const { data: existing, error: existingError } = await db
+            .from("netbill_customers")
+            .select("id")
+            .eq("company_id", companyId)
+            .limit(1);
+
+        if (existingError) throw existingError;
+
+        if (existing && existing.length > 0) {
+            throw new Error(
+                "Customer records already exist online. Transfer stopped to prevent duplicates."
+            );
+        }
+
+        const rows = backupCustomers.map(customer => ({
+            company_id: companyId,
+            customer_data: customer
+        }));
+
+        const { error } = await db
+            .from("netbill_customers")
+            .insert(rows);
+
+        if (error) throw error;
+
+        result.textContent =
+            "SUCCESS! " + rows.length +
+            " customers transferred to Supabase.";
+
+    } catch (error) {
+        result.textContent = "TRANSFER FAILED: " + error.message;
+        transferButton.disabled = false;
+    }
+};
+</script>
+
+</body>
+</html>

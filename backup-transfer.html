@@ -1,0 +1,242 @@
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NetBill Online Data Transfer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            padding: 20px;
+        }
+        .container {
+            max-width: 550px;
+            margin: 25px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+        }
+        input, button {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 13px;
+            margin: 9px 0;
+        }
+        input {
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        button {
+            background: #087bda;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+        #result {
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>NetBill Online Data Transfer</h2>
+
+    <h3>1. Company Owner Login</h3>
+    <input type="email" id="email" placeholder="Owner email">
+    <input type="password" id="password" placeholder="Owner password">
+    <button id="loginButton">Login to Supabase</button>
+
+    <p id="loginStatus">Not connected.</p>
+
+    <hr>
+
+    <h3>2. Select NetBill Backup</h3>
+    <input type="file" id="backupFile" accept=".json">
+
+    <h3>3. Company ID</h3>
+    <input type="text" id="companyId" placeholder="Paste your Company ID">
+
+    <button id="checkButton" disabled>Check Backup</button>
+
+    <p id="result">Waiting for login and backup.</p>
+
+    <button id="transferButton" disabled>
+        Transfer Packages to Supabase
+    </button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase-config.js"></script>
+
+<script>
+const db = window.netbillSupabase;
+
+let currentUser = null;
+let backupPackages = [];
+
+const loginButton = document.getElementById("loginButton");
+const checkButton = document.getElementById("checkButton");
+const transferButton = document.getElementById("transferButton");
+const loginStatus = document.getElementById("loginStatus");
+const result = document.getElementById("result");
+
+loginButton.onclick = async function () {
+    if (!db) {
+        loginStatus.textContent =
+            "Supabase client could not load. Check the configuration.";
+        return;
+    }
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    if (!email || !password) {
+        loginStatus.textContent = "Enter your email and password.";
+        return;
+    }
+
+    loginButton.disabled = true;
+    loginStatus.textContent = "Signing in...";
+
+    const { data, error } = await db.auth.signInWithPassword({
+        email,
+        password
+    });
+
+    loginButton.disabled = false;
+
+    if (error) {
+        loginStatus.textContent = "LOGIN FAILED: " + error.message;
+        return;
+    }
+
+    currentUser = data.user;
+
+    loginStatus.textContent =
+        "Connected as company owner: " + currentUser.email;
+
+    checkButton.disabled = false;
+};
+
+checkButton.onclick = async function () {
+    transferButton.disabled = true;
+
+    const file = document.getElementById("backupFile").files[0];
+    const companyId = document.getElementById("companyId").value.trim();
+
+    if (!file || !companyId) {
+        result.textContent = "Select your backup and enter your Company ID.";
+        return;
+    }
+
+    try {
+        const backup = JSON.parse(await file.text());
+
+        if (!backup.data) {
+            throw new Error("Backup data section not found.");
+        }
+
+        backupPackages = JSON.parse(
+            backup.data.netbillPackages || "[]"
+        );
+
+        const customers = JSON.parse(
+            backup.data.netbillCustomers || "[]"
+        );
+
+        const payments = JSON.parse(
+            backup.data.netbillPayments || "[]"
+        );
+
+        const invoices = JSON.parse(
+            backup.data.netbillInvoices || "[]"
+        );
+
+        if (!Array.isArray(backupPackages)) {
+            throw new Error("Package data is not a valid list.");
+        }
+
+        const { data: company, error } = await db
+            .from("netbill_companies")
+            .select("id")
+            .eq("id", companyId)
+            .eq("owner_id", currentUser.id)
+            .maybeSingle();
+
+        if (error) throw error;
+
+        if (!company) {
+            throw new Error(
+                "Company not found or this account does not own it."
+            );
+        }
+
+        result.textContent =
+            "BACKUP VERIFIED!\n\n" +
+            "Packages: " + backupPackages.length + "\n" +
+            "Customers: " + customers.length + "\n" +
+            "Payments: " + payments.length + "\n" +
+            "Invoices: " + invoices.length + "\n\n" +
+            "Company ownership verified.\n" +
+            "Only packages will be transferred in this step.";
+
+        transferButton.disabled = backupPackages.length === 0;
+
+    } catch (error) {
+        result.textContent = "CHECK FAILED: " + error.message;
+    }
+};
+
+transferButton.onclick = async function () {
+    transferButton.disabled = true;
+    result.textContent = "Transferring packages...";
+
+    try {
+        const companyId =
+            document.getElementById("companyId").value.trim();
+
+        const { data: existing, error: existingError } = await db
+            .from("netbill_packages")
+            .select("id")
+            .eq("company_id", companyId)
+            .limit(1);
+
+        if (existingError) throw existingError;
+
+        if (existing && existing.length > 0) {
+            throw new Error(
+                "Online packages already exist. Transfer stopped to prevent duplicates."
+            );
+        }
+
+        const rows = backupPackages.map(pkg => ({
+            company_id: companyId,
+            package_data: pkg
+        }));
+
+        const { error } = await db
+            .from("netbill_packages")
+            .insert(rows);
+
+        if (error) throw error;
+
+        result.textContent =
+            "SUCCESS! " + rows.length +
+            " packages transferred to Supabase.";
+
+    } catch (error) {
+        result.textContent = "TRANSFER FAILED: " + error.message;
+        transferButton.disabled = false;
+    }
+};
+</script>
+</body>
+</html>

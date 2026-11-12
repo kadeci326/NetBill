@@ -1,0 +1,362 @@
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetBill - ISP Billing System</title>
+    <meta name="theme-color" content="#123456">
+    <meta name="description" content="NetBill ISP Billing and Management System">
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <h2>NETBILL</h2>
+        <p>ISP MANAGEMENT</p>
+
+        <nav>
+            <button class="nav-button active" data-page="dashboard">Dashboard</button>
+            <button class="nav-button" data-page="customers">Customers</button>
+            <button class="nav-button" data-page="hotspot">Hotspot</button>
+            <button class="nav-button" data-page="pppoe">PPPoE</button>
+            <button class="nav-button" data-page="packages">Internet Packages</button>
+            <button class="nav-button" data-page="payments">Payments</button>
+            <button class="nav-button" data-page="invoices">Invoices</button>
+            <button class="nav-button" data-page="reports">Reports</button>
+            <button class="nav-button" data-page="settings">Settings</button>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <header class="top-header">
+            <h1>NetBill Management System</h1>
+            <p>Internet Service Provider Billing & Management</p>
+        </header>
+
+        <!-- DASHBOARD -->
+        <section class="page" id="dashboard">
+            <h2>Dashboard</h2>
+
+            <div class="dashboard-cards">
+                <div class="card">
+                    <h3>Total Customers</h3>
+                    <p id="totalCustomers">0</p>
+                </div>
+
+                <div class="card">
+                    <h3>Active Customers</h3>
+                    <p id="activeCustomers">0</p>
+                </div>
+
+                <div class="card">
+                    <h3>Expired Customers</h3>
+                    <p id="expiredCustomers">0</p>
+                </div>
+
+                <div class="card">
+                    <h3>Total Revenue</h3>
+                    <p id="totalRevenue">Ksh 0.00</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CUSTOMERS -->
+        <section class="page" id="customers" style="display:none;">
+            <h2>Customer Management</h2>
+
+            <div class="form-container">
+                <h3>Register New Customer</h3>
+
+                <form id="customerForm">
+                    <label>Customer Name</label>
+                    <input type="text" id="customerName" required>
+
+                    <label>Phone Number</label>
+                    <input type="tel" id="customerPhone" required>
+
+                    <label>Connection Type</label>
+                    <select id="connectionType" required>
+                        <option value="">Select Connection</option>
+                        <option value="Hotspot">Hotspot</option>
+                        <option value="PPPoE">PPPoE</option>
+                    </select>
+
+                    <label>Internet Package</label>
+                    <select id="customerPackage" required>
+                        <option value="">Select Package</option>
+                    </select>
+
+                    <label>Subscription Start Date</label>
+                    <input type="date" id="customerStartDate" required>
+
+                    <label>Subscription Expiry Date</label>
+                    <input type="date" id="customerExpiryDate" required>
+
+                    <button type="submit">Add Customer</button>
+                    <p id="customerMessage"></p>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <h3>Registered Customers</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Connection</th>
+                            <th>Package</th>
+                            <th>Start Date</th>
+                            <th>Expiry Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customerList"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- HOTSPOT -->
+        <section class="page" id="hotspot" style="display:none;">
+            <h2>Hotspot Management</h2>
+
+            <div class="card">
+                <h3>Hotspot Connections</h3>
+                <p>Manage customers using Wi-Fi hotspot connections.</p>
+                <p>Router integration will be added in a later stage.</p>
+            </div>
+        </section>
+
+        <!-- PPPOE -->
+        <section class="page" id="pppoe" style="display:none;">
+            <h2>PPPoE Management</h2>
+
+            <div class="card">
+                <h3>PPPoE Connections</h3>
+                <p>Manage customers using PPPoE internet connections.</p>
+                <p>MikroTik integration will be added in a later stage.</p>
+            </div>
+        </section>
+
+        <!-- PACKAGES -->
+        <section class="page" id="packages" style="display:none;">
+            <h2>Internet Package Management</h2>
+
+            <div class="form-container">
+                <h3>Add Internet Package</h3>
+
+                <form id="packageForm">
+                    <label>Package Name</label>
+                    <input type="text" id="packageName" required>
+
+                    <label>Connection Type</label>
+                    <select id="packageConnection" required>
+                        <option value="">Select Connection</option>
+                        <option value="Hotspot">Hotspot</option>
+                        <option value="PPPoE">PPPoE</option>
+                    </select>
+
+                    <label>Internet Speed</label>
+                    <input type="text" id="packageSpeed" placeholder="e.g. 10 Mbps" required>
+
+                    <label>Package Price (Ksh)</label>
+                    <input type="number" id="packagePrice" min="1" step="0.01" required>
+
+                    <label>Package Duration</label>
+                    <select id="packageDuration" required>
+                        <option value="">Select Duration</option>
+                        <option value="Daily">Daily</option>
+                        <option value="Weekly">Weekly</option>
+                        <option value="Monthly">Monthly</option>
+                    </select>
+
+                    <button type="submit">Add Package</button>
+                    <p id="packageMessage"></p>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <h3>Available Internet Packages</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Package</th>
+                            <th>Connection</th>
+                            <th>Speed</th>
+                            <th>Price</th>
+                            <th>Duration</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="packageList"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- PAYMENTS -->
+        <section class="page" id="payments" style="display:none;">
+            <h2>Payment Management</h2>
+
+            <div class="form-container">
+                <h3>Record Customer Payment</h3>
+
+                <form id="paymentForm">
+                    <label>Select Customer</label>
+                    <select id="paymentCustomer" required>
+                        <option value="">Select Customer</option>
+                    </select>
+
+                    <label>Payment Amount (Ksh)</label>
+                    <input type="number" id="paymentAmount" min="1" step="0.01" required>
+
+                    <label>Payment Method</label>
+                    <select id="paymentMethod" required>
+                        <option value="">Select Method</option>
+                        <option value="M-Pesa">M-Pesa</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Bank">Bank</option>
+                    </select>
+
+                    <label>Payment Reference</label>
+                    <input type="text" id="paymentReference">
+
+                    <button type="submit">Record Payment</button>
+                    <p id="paymentMessage"></p>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <h3>Payment History</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Reference</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentList"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- INVOICES -->
+        <section class="page" id="invoices" style="display:none;">
+            <h2>Invoice Management</h2>
+
+            <div class="form-container">
+                <h3>Generate New Invoice</h3>
+
+                <form id="invoiceForm">
+                    <label>Select Customer</label>
+                    <select id="invoiceCustomer" required>
+                        <option value="">Select Customer</option>
+                    </select>
+
+                    <label>Invoice Description</label>
+                    <input type="text" id="invoiceDescription" required>
+
+                    <label>Invoice Amount (Ksh)</label>
+                    <input type="number" id="invoiceAmount" min="1" step="0.01" required>
+
+                    <label>Due Date</label>
+                    <input type="date" id="invoiceDueDate" required>
+
+                    <button type="submit">Generate Invoice</button>
+                    <p id="invoiceMessage"></p>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <h3>Generated Invoices</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Invoice Number</th>
+                            <th>Customer</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoiceList"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- REPORTS -->
+        <section class="page" id="reports" style="display:none;">
+            <h2>Reports</h2>
+
+            <div class="card">
+                <h3>Download Your NetBill Data</h3>
+                <p>Download your records and open them using Microsoft Excel.</p>
+
+                <button type="button" data-export="customers">
+                    Export Customers
+                </button>
+
+                <button type="button" data-export="payments">
+                    Export Payments
+                </button>
+
+                <button type="button" data-export="invoices">
+                    Export Invoices
+                </button>
+            </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section class="page" id="settings" style="display:none;">
+            <h2>Settings</h2>
+
+            <div class="card">
+                <h3>System Information</h3>
+                <p>Application: NetBill</p>
+                <p>Version: 1.0</p>
+                <p>System: ISP Billing and Management</p>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+ 
+<!-- SUPABASE CONNECTION -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase-config.js"></script>
+
+<!-- JAVASCRIPT FILES -->
+<script src="script.js" defer></script>
+<script src="subscription-alerts.js" defer></script>
+<script src="automatic-invoices.js" defer></script>
+<script src="customer-payment-tracking.js" defer></script>
+<script src="customer-account-balances.js" defer></script>
+<script src="data-export.js" defer></script>
+<script src="sms-notifications.js" defer></script>
+<script src="payment-notifications.js" defer></script>
+<script src="admin-guard.js" defer></script>
+<script src="backup-restore.js" defer></script>
+<script src="payment-receipts.js" defer></script>
+<script src="company-profile.js" defer></script>
+<script src="netbill-cloud.js" defer></script>
+
+</body>
+</html>
+

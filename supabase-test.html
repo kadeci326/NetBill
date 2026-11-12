@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetBill Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .card {
+            background: white;
+            max-width: 450px;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #0002;
+        }
+
+        button {
+            background: #087f8c;
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>NetBill Cloud Connection</h2>
+
+        <p>Click below to test your Supabase connection.</p>
+
+        <button id="testButton" type="button">
+            TEST CONNECTION
+        </button>
+
+        <p id="result">Waiting for test...</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+
+    <script>
+        document.getElementById("testButton")
+            .addEventListener("click", async function () {
+
+                const result = document.getElementById("result");
+
+                result.textContent = "Connecting to Supabase...";
+
+                try {
+                    const response = await netbillSupabase
+                        .from("netbill_companies")
+                        .select("id")
+                        .limit(1);
+
+                    if (response.error) {
+                        throw response.error;
+                    }
+
+                    result.textContent =
+                        "SUCCESS! NetBill is connected to Supabase.";
+
+                    result.style.color = "green";
+
+                } catch (error) {
+                    result.textContent =
+                        "CONNECTION FAILED: " + error.message;
+
+                    result.style.color = "red";
+                }
+            });
+    </script>
+
+</body>
+</html>
