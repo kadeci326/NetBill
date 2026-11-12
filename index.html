@@ -22,6 +22,7 @@
         <nav>
             <button class="nav-button active" data-page="dashboard">Dashboard</button>
             <button class="nav-button" data-page="customers">Customers</button>
+            <button class="nav-button" data-page="routers">Router Management</button>
             <button class="nav-button" data-page="hotspot">Hotspot</button>
             <button class="nav-button" data-page="pppoe">PPPoE</button>
             <button class="nav-button" data-page="packages">Internet Packages</button>
@@ -125,6 +126,93 @@
             </div>
         </section>
 
+        <!-- ROUTER MANAGEMENT -->
+        <section class="page" id="routers" style="display:none;">
+            <h2>Router Management</h2>
+
+            <div class="card">
+                <h3>MikroTik Router Management</h3>
+                <p>Register and manage multiple MikroTik routers running compatible RouterOS versions.</p>
+                <p>Router credentials will be handled securely through the NetBill backend.</p>
+            </div>
+
+            <div class="form-container">
+                <h3>Register New Router</h3>
+
+                <form id="routerForm">
+
+                    <label>Router Name</label>
+                    <input
+                        type="text"
+                        id="routerName"
+                        placeholder="e.g. Main Office Router"
+                        required
+                    >
+
+                    <label>Router IP Address or Hostname</label>
+                    <input
+                        type="text"
+                        id="routerIP"
+                        placeholder="e.g. 192.168.88.1"
+                        required
+                    >
+
+                    <label>Router API Port</label>
+                    <input
+                        type="number"
+                        id="routerPort"
+                        value="8729"
+                        min="1"
+                        max="65535"
+                        required
+                    >
+
+                    <label>Router Model (Optional)</label>
+                    <input
+                        type="text"
+                        id="routerModel"
+                        placeholder="e.g. hEX, RB4011, CCR"
+                    >
+
+                    <p class="router-security-note">
+                        Secure API credentials will be configured separately.
+                        Do not enter your router password here.
+                    </p>
+
+                    <button type="submit">Register Router</button>
+
+                    <p id="routerMessage"></p>
+
+                </form>
+            </div>
+
+            <div class="table-container">
+                <h3>Registered MikroTik Routers</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Router Name</th>
+                            <th>IP Address</th>
+                            <th>API Port</th>
+                            <th>Model</th>
+                            <th>RouterOS Version</th>
+                            <th>Connection Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="routerList">
+                        <tr>
+                            <td colspan="7">
+                                No routers registered yet.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
         <!-- HOTSPOT -->
         <section class="page" id="hotspot" style="display:none;">
             <h2>Hotspot Management</h2>
@@ -132,7 +220,7 @@
             <div class="card">
                 <h3>Hotspot Connections</h3>
                 <p>Manage customers using Wi-Fi hotspot connections.</p>
-                <p>Router integration will be added in a later stage.</p>
+                <p>Router integration will be connected through Router Management.</p>
             </div>
         </section>
 
@@ -143,7 +231,7 @@
             <div class="card">
                 <h3>PPPoE Connections</h3>
                 <p>Manage customers using PPPoE internet connections.</p>
-                <p>MikroTik integration will be added in a later stage.</p>
+                <p>MikroTik integration will be connected through Router Management.</p>
             </div>
         </section>
 
@@ -308,17 +396,9 @@
                 <h3>Download Your NetBill Data</h3>
                 <p>Download your records and open them using Microsoft Excel.</p>
 
-                <button type="button" data-export="customers">
-                    Export Customers
-                </button>
-
-                <button type="button" data-export="payments">
-                    Export Payments
-                </button>
-
-                <button type="button" data-export="invoices">
-                    Export Invoices
-                </button>
+                <button type="button" data-export="customers">Export Customers</button>
+                <button type="button" data-export="payments">Export Payments</button>
+                <button type="button" data-export="invoices">Export Invoices</button>
             </div>
         </section>
 
@@ -337,7 +417,6 @@
     </main>
 </div>
 
- 
 <!-- SUPABASE CONNECTION -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase-config.js"></script>
@@ -360,4 +439,3 @@
 
 </body>
 </html>
-
