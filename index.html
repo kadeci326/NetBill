@@ -180,14 +180,99 @@
             </div>
         </section>
 
-        <!-- HOTSPOT -->
+        <!-- HOTSPOT MANAGEMENT -->
         <section class="page" id="hotspot" style="display:none;">
             <h2>Hotspot Management</h2>
 
+            <div class="dashboard-cards">
+                <div class="card">
+                    <h3>Total Hotspot Accounts</h3>
+                    <p id="hotspotTotal">0</p>
+                </div>
+
+                <div class="card">
+                    <h3>Active Accounts</h3>
+                    <p id="hotspotActive">0</p>
+                </div>
+
+                <div class="card">
+                    <h3>Suspended Accounts</h3>
+                    <p id="hotspotSuspended">0</p>
+                </div>
+
+                <div class="card">
+                    <h3>Expired Accounts</h3>
+                    <p id="hotspotExpired">0</p>
+                </div>
+            </div>
+
             <div class="card">
-                <h3>Hotspot Connections</h3>
-                <p>Manage customers using Wi-Fi hotspot connections.</p>
-                <p>Router integration will be connected through Router Management.</p>
+                <h3>About Hotspot Management</h3>
+                <p>Create and manage Wi-Fi Hotspot customer accounts, assign internet packages and monitor subscription status.</p>
+                <p><strong>Router connection:</strong> Actual MikroTik Hotspot provisioning will be connected through the secure NetBill backend.</p>
+            </div>
+
+            <div class="form-container">
+                <h3>Create Hotspot Account</h3>
+
+                <form id="hotspotForm">
+
+                    <label>Select Customer</label>
+                    <select id="hotspotCustomer" required>
+                        <option value="">Select Hotspot Customer</option>
+                    </select>
+
+                    <label>Hotspot Username</label>
+                    <input type="text" id="hotspotUsername"
+                        placeholder="e.g. hotspot001" required>
+
+                    <label>Internet Package</label>
+                    <select id="hotspotPackage" required>
+                        <option value="">Select Hotspot Package</option>
+                    </select>
+
+                    <label>Subscription Start Date</label>
+                    <input type="date" id="hotspotStartDate" required>
+
+                    <label>Subscription Expiry Date</label>
+                    <input type="date" id="hotspotExpiryDate" required>
+
+                    <label>Account Status</label>
+                    <select id="hotspotStatus" required>
+                        <option value="Pending">Pending</option>
+                        <option value="Active">Active</option>
+                        <option value="Suspended">Suspended</option>
+                        <option value="Expired">Expired</option>
+                    </select>
+
+                    <p id="hotspotMessage"></p>
+
+                    <button type="submit">Create Hotspot Account</button>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <h3>Registered Hotspot Accounts</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Username</th>
+                            <th>Package</th>
+                            <th>Start Date</th>
+                            <th>Expiry Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="hotspotList">
+                        <tr>
+                            <td colspan="7">No Hotspot accounts registered yet.</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </section>
 
@@ -482,6 +567,7 @@
 <script src="netbill-cloud.js" defer></script>
 <script src="router-management.js" defer></script>
 <script src="pppoe-management.js" defer></script>
+<script src="hotspot-management.js" defer></script>
 <script src="dashboard-analytics.js" defer></script>
 
 </body>
