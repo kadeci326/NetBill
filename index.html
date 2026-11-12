@@ -24,6 +24,7 @@
             <button class="nav-button" data-page="customers">Customers</button>
             <button class="nav-button" data-page="routers">Router Management</button>
             <button class="nav-button" data-page="hotspot">Hotspot</button>
+            <button class="nav-button" data-page="vouchers">Hotspot Vouchers</button>
             <button class="nav-button" data-page="pppoe">PPPoE</button>
             <button class="nav-button" data-page="packages">Internet Packages</button>
             <button class="nav-button" data-page="payments">Payments</button>
@@ -216,7 +217,6 @@
                 <h3>Create Hotspot Account</h3>
 
                 <form id="hotspotForm">
-
                     <label>Select Customer</label>
                     <select id="hotspotCustomer" required>
                         <option value="">Select Hotspot Customer</option>
@@ -276,6 +276,94 @@
             </div>
         </section>
 
+        <!-- HOTSPOT VOUCHERS -->
+        <section class="page" id="vouchers" style="display:none;">
+            <h2>Hotspot Voucher Management</h2>
+
+            <div class="dashboard-cards">
+                <div class="card">
+                    <h3>Total Vouchers</h3>
+                    <p id="voucherTotal">0</p>
+                </div>
+
+                <div class="card">
+                    <h3>Unused Vouchers</h3>
+                    <p id="voucherUnused">0</p>
+                </div>
+
+                <div class="card">
+                    <h3>Used Vouchers</h3>
+                    <p id="voucherUsed">0</p>
+                </div>
+
+                <div class="card">
+                    <h3>Expired Vouchers</h3>
+                    <p id="voucherExpired">0</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>About Hotspot Vouchers</h3>
+                <p>Generate individual or bulk Wi-Fi access vouchers, assign Hotspot packages, set validity periods and monitor voucher usage.</p>
+                <p><strong>Important:</strong> Vouchers will initially be managed in NetBill's database. Actual MikroTik login and access enforcement will be added through the secure backend later.</p>
+            </div>
+
+            <div class="form-container">
+                <h3>Generate Hotspot Vouchers</h3>
+
+                <form id="voucherForm">
+
+                    <label>Hotspot Internet Package</label>
+                    <select id="voucherPackage" required>
+                        <option value="">Select Hotspot Package</option>
+                    </select>
+
+                    <label>Number of Vouchers</label>
+                    <input type="number" id="voucherCount"
+                        min="1" max="100" value="1" required>
+
+                    <label>Voucher Validity (Minutes)</label>
+                    <input type="number" id="voucherDuration"
+                        min="1" value="1440" required>
+
+                    <label>Voucher Price (Ksh)</label>
+                    <input type="number" id="voucherPrice"
+                        min="0" step="0.01" value="0" required>
+
+                    <label>Voucher Expiration Date (Optional)</label>
+                    <input type="date" id="voucherExpiry">
+
+                    <p id="voucherMessage"></p>
+
+                    <button type="submit">Generate Vouchers</button>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <h3>Generated Hotspot Vouchers</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Voucher Code</th>
+                            <th>Package</th>
+                            <th>Duration</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="voucherList">
+                        <tr>
+                            <td colspan="7">No vouchers generated yet.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
         <!-- PPPOE MANAGEMENT -->
         <section class="page" id="pppoe" style="display:none;">
             <h2>PPPoE Management</h2>
@@ -309,7 +397,6 @@
                 <h3>Create PPPoE Account</h3>
 
                 <form id="pppoeForm">
-
                     <label>Select Customer</label>
                     <select id="pppoeCustomer" required>
                         <option value="">Select PPPoE Customer</option>
@@ -568,6 +655,7 @@
 <script src="router-management.js" defer></script>
 <script src="pppoe-management.js" defer></script>
 <script src="hotspot-management.js" defer></script>
+<script src="hotspot-voucher-management.js" defer></script>
 <script src="dashboard-analytics.js" defer></script>
 
 </body>
