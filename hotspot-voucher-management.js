@@ -1,6 +1,7 @@
-
+ 
 // ==========================================
 // NETBILL - HOTSPOT VOUCHER MANAGEMENT
+// WITH PRINTABLE VOUCHER SLIPS
 // ==========================================
 
 (function () {
@@ -104,9 +105,8 @@
             dropdown.appendChild(option);
         });
 
-        dropdown.addEventListener("change", updateSelectedPackage, {
-            once: true
-        });
+        dropdown.removeEventListener("change", updateSelectedPackage);
+        dropdown.addEventListener("change", updateSelectedPackage);
     }
 
     function updateSelectedPackage() {
@@ -182,6 +182,308 @@
         return date.toLocaleDateString("en-KE");
     }
 
+    // ==========================================
+    // PRINTING FEATURES
+    // ==========================================
+
+    function getPackageName(voucher) {
+        const packageItem = hotspotPackages.find(localPackage =>
+            findCloudPackage(localPackage)?.id === voucher.package_id
+        );
+
+        return packageItem ? packageItem.name : "Hotspot Package";
+    }
+
+    function createPrintToolbar() {
+        const table = $("voucherList");
+
+        if (!table || $("voucherPrintToolbar")) return;
+
+        const toolbar = document.createElement("div");
+
+        toolbar.id = "voucherPrintToolbar";
+
+        toolbar.style.cssText = `
+            display:flex;
+            align-items:center;
+            flex-wrap:wrap;
+            gap:12px;
+            margin:15px 0;
+            padding:12px;
+            background:#f1f5f9;
+            border-radius:8px;
+        `;
+
+        toolbar.innerHTML = `
+            <label style="display:flex;align-items:center;gap:6px;">
+                <input type="checkbox" id="voucherSelectAll">
+                Select All
+            </label>
+
+            <button type="button" id="printSelectedVouchers">
+                Print Selected
+            </button>
+
+            <span id="voucherSelectedCount">
+                0 selected
+            </span>
+        `;
+
+        table.parentNode.insertBefore(toolbar, table);
+
+        $("voucherSelectAll").addEventListener("change", function () {
+            document.querySelectorAll(".voucher-select").forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+
+            updateSelectedCount();
+        });
+
+        $("printSelectedVouchers").addEventListener("click", function () {
+            const selectedIds = Array.from(
+                document.querySelectorAll(".voucher-select:checked")
+            ).map(checkbox => checkbox.value);
+
+            const selectedVouchers = vouchers.filter(voucher =>
+                selectedIds.includes(String(voucher.id))
+            );
+
+            if (selectedVouchers.length === 0) {
+                alert("Please select at least one voucher to print.");
+                return;
+            }
+
+            printVoucherSlips(selectedVouchers);
+        });
+    }
+
+    function updateSelectedCount() {
+        const selected = document.querySelectorAll(
+            ".voucher-select:checked"
+        ).length;
+
+        const count = $("voucherSelectedCount");
+
+        if (count) {
+            count.textContent = selected + " selected";
+        }
+
+        const allCheckboxes = document.querySelectorAll(".voucher-select");
+        const selectAll = $("voucherSelectAll");
+
+        if (selectAll) {
+            selectAll.checked =
+                allCheckboxes.length > 0 &&
+                selected === allCheckboxes.length;
+        }
+    }
+
+    function printVoucherSlips(selectedVouchers) {
+        if (!selectedVouchers || selectedVouchers.length === 0) {
+            alert("No vouchers available to print.");
+            return;
+        }
+
+        const printWindow = window.open(
+            "",
+            "_blank",
+            "width=900,height=700"
+        );
+
+        if (!printWindow) {
+            alert("Please allow pop-ups in your browser to print vouchers.");
+            return;
+        }
+
+        const companyName =
+            localStorage.getItem("netbillCompanyName") ||
+            "NETBILL INTERNET SERVICES";
+
+        const slips = selectedVouchers.map(voucher => `
+            <div class="voucher-slip">
+                <div class="slip-header">
+                    <h2>${escapeHTML(companyName)}</h2>
+                    <p>HOTSPOT INTERNET VOUCHER</p>
+                </div>
+
+                <div class="slip-body">
+                    <p class="label">YOUR VOUCHER CODE</p>
+
+                    <div class="voucher-code">
+                        ${escapeHTML(voucher.voucher_code)}
+                    </div>
+
+                    <div class="details">
+                        <div>
+                            <span>Package</span>
+                            <strong>${escapeHTML(getPackageName(voucher))}</strong>
+                        </div>
+
+                        <div>
+                            <span>Duration</span>
+                            <strong>${Number(voucher.duration_minutes)} minutes</strong>
+                        </div>
+
+                        <div>
+                            <span>Price</span>
+                            <strong>${escapeHTML(formatMoney(voucher.price))}</strong>
+                        </div>
+
+                        <div>
+                            <span>Status</span>
+                            <strong>${escapeHTML(effectiveStatus(voucher))}</strong>
+                        </div>
+                    </div>
+
+                    <p class="instruction">
+                        Connect to the Wi-Fi network and enter this voucher
+                        code when prompted to access the internet.
+                    </p>
+                </div>
+
+                <div class="slip-footer">
+                    Thank you for choosing ${escapeHTML(companyName)}
+                </div>
+            </div>
+        `).join("");
+
+        printWindow.document.open();
+
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>NetBill Hotspot Vouchers</title>
+
+                <style>
+                    * {
+                        box-sizing: border-box;
+                    }
+
+                    body {
+                        font-family: Arial, sans-serif;
+                        margin: 15px;
+                        color: #172033;
+                    }
+
+                    .voucher-slip {
+                        width: 100%;
+                        max-width: 420px;
+                        margin: 0 auto 20px;
+                        border: 2px dashed #123456;
+                        border-radius: 10px;
+                        overflow: hidden;
+                        page-break-inside: avoid;
+                        break-inside: avoid;
+                    }
+
+                    .slip-header {
+                        background: #123456;
+                        color: white;
+                        text-align: center;
+                        padding: 16px 10px;
+                    }
+
+                    .slip-header h2 {
+                        margin: 0 0 6px;
+                        font-size: 20px;
+                    }
+
+                    .slip-header p {
+                        margin: 0;
+                        font-size: 12px;
+                        letter-spacing: 2px;
+                    }
+
+                    .slip-body {
+                        padding: 18px;
+                        text-align: center;
+                    }
+
+                    .label {
+                        font-size: 12px;
+                        font-weight: bold;
+                        color: #64748b;
+                    }
+
+                    .voucher-code {
+                        font-size: 27px;
+                        font-weight: bold;
+                        letter-spacing: 2px;
+                        color: #123456;
+                        padding: 14px 5px;
+                        border: 1px solid #cbd5e1;
+                        border-radius: 7px;
+                        margin: 12px 0 18px;
+                    }
+
+                    .details {
+                        text-align: left;
+                        border-top: 1px solid #ddd;
+                        padding-top: 10px;
+                    }
+
+                    .details div {
+                        display: flex;
+                        justify-content: space-between;
+                        gap: 10px;
+                        padding: 7px 0;
+                        border-bottom: 1px solid #eee;
+                        font-size: 13px;
+                    }
+
+                    .details span {
+                        color: #64748b;
+                    }
+
+                    .details strong {
+                        text-align: right;
+                    }
+
+                    .instruction {
+                        font-size: 11px;
+                        line-height: 1.5;
+                        margin-top: 16px;
+                    }
+
+                    .slip-footer {
+                        background: #f1f5f9;
+                        text-align: center;
+                        padding: 10px;
+                        font-size: 11px;
+                    }
+
+                    @media print {
+                        body {
+                            margin: 8mm;
+                        }
+
+                        .voucher-slip {
+                            margin-bottom: 10mm;
+                        }
+                    }
+                </style>
+            </head>
+
+            <body>
+                ${slips}
+
+                <script>
+                    window.onload = function () {
+                        window.print();
+                    };
+                <\/script>
+            </body>
+            </html>
+        `);
+
+        printWindow.document.close();
+    }
+
+    // ==========================================
+    // STATISTICS
+    // ==========================================
+
     function updateStatistics() {
         const total = vouchers.length;
 
@@ -203,31 +505,31 @@
         if ($("voucherExpired")) $("voucherExpired").textContent = expired;
     }
 
+    // ==========================================
+    // DISPLAY VOUCHERS
+    // ==========================================
+
     function renderVouchers() {
         const table = $("voucherList");
 
         if (!table) return;
 
         updateStatistics();
+        createPrintToolbar();
 
         if (vouchers.length === 0) {
             table.innerHTML = `
                 <tr>
-                    <td colspan="7">No vouchers generated yet.</td>
+                    <td colspan="8">No vouchers generated yet.</td>
                 </tr>
             `;
+
+            updateSelectedCount();
             return;
         }
 
         table.innerHTML = vouchers.map(voucher => {
-            const packageItem = hotspotPackages.find(localPackage =>
-                findCloudPackage(localPackage)?.id === voucher.package_id
-            );
-
-            const packageName = packageItem
-                ? packageItem.name
-                : "Package unavailable";
-
+            const packageName = getPackageName(voucher);
             const status = effectiveStatus(voucher);
 
             const options = ["Unused", "Used", "Expired", "Disabled"]
@@ -239,10 +541,22 @@
 
             return `
                 <tr>
+                    <td>
+                        <input
+                            type="checkbox"
+                            class="voucher-select"
+                            value="${escapeHTML(voucher.id)}"
+                            aria-label="Select voucher ${escapeHTML(voucher.voucher_code)}">
+                    </td>
+
                     <td><strong>${escapeHTML(voucher.voucher_code)}</strong></td>
+
                     <td>${escapeHTML(packageName)}</td>
+
                     <td>${Number(voucher.duration_minutes)} minutes</td>
+
                     <td>${formatMoney(voucher.price)}</td>
+
                     <td>
                         <select class="voucher-status"
                             data-id="${escapeHTML(voucher.id)}"
@@ -250,13 +564,22 @@
                             ${options}
                         </select>
                     </td>
+
                     <td>${formatDate(voucher.created_at)}</td>
+
                     <td>
+                        <button type="button"
+                            class="print-voucher"
+                            data-id="${escapeHTML(voucher.id)}">
+                            Print
+                        </button>
+
                         <button type="button"
                             class="copy-voucher"
                             data-code="${escapeHTML(voucher.voucher_code)}">
                             Copy Code
                         </button>
+
                         <button type="button"
                             class="delete-voucher"
                             data-id="${escapeHTML(voucher.id)}">
@@ -266,7 +589,28 @@
                 </tr>
             `;
         }).join("");
+
+        // Add a selection heading to the table.
+        const headerRow = table.closest("table")?.querySelector("thead tr");
+
+        if (headerRow && !headerRow.querySelector(".voucher-select-heading")) {
+            const heading = document.createElement("th");
+            heading.className = "voucher-select-heading";
+            heading.textContent = "Select";
+
+            headerRow.insertBefore(heading, headerRow.firstElementChild);
+        }
+
+        updateSelectedCount();
+
+        table.querySelectorAll(".voucher-select").forEach(checkbox => {
+            checkbox.addEventListener("change", updateSelectedCount);
+        });
     }
+
+    // ==========================================
+    // LOAD VOUCHERS FROM SUPABASE
+    // ==========================================
 
     async function loadVouchers() {
         if (!supabase) {
@@ -298,6 +642,10 @@
             showMessage("Could not load vouchers: " + error.message, false);
         }
     }
+
+    // ==========================================
+    // GENERATE VOUCHERS
+    // ==========================================
 
     async function generateVouchers(event) {
         event.preventDefault();
@@ -408,6 +756,10 @@
         }
     }
 
+    // ==========================================
+    // UPDATE VOUCHER STATUS
+    // ==========================================
+
     async function updateVoucherStatus(id, status) {
         const voucher = vouchers.find(item => item.id === id);
 
@@ -435,6 +787,10 @@
         await loadVouchers();
     }
 
+    // ==========================================
+    // DELETE VOUCHER
+    // ==========================================
+
     async function deleteVoucher(id) {
         const confirmed = confirm(
             "Are you sure you want to delete this voucher?"
@@ -456,6 +812,10 @@
         await loadVouchers();
     }
 
+    // ==========================================
+    // TABLE ACTIONS
+    // ==========================================
+
     function handleTableActions(event) {
         const statusSelect = event.target.closest(".voucher-status");
 
@@ -464,6 +824,20 @@
                 statusSelect.dataset.id,
                 statusSelect.value
             );
+            return;
+        }
+
+        const printButton = event.target.closest(".print-voucher");
+
+        if (printButton) {
+            const voucher = vouchers.find(item =>
+                item.id === printButton.dataset.id
+            );
+
+            if (voucher) {
+                printVoucherSlips([voucher]);
+            }
+
             return;
         }
 
@@ -489,6 +863,10 @@
             deleteVoucher(deleteButton.dataset.id);
         }
     }
+
+    // ==========================================
+    // INITIALIZATION
+    // ==========================================
 
     async function initializeVoucherManagement() {
         if (!supabase) {
