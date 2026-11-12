@@ -320,7 +320,7 @@ function editCustomer(id) {
     alert("Customer details updated successfully!");
 }
 
-// DELETE CUSTOMER
+// DELETE CUSTOMER - TRACK FOR CLOUD ARCHIVING
 function deleteCustomer(id) {
     const customer = customers.find(
         item => String(item.id) === String(id)
@@ -333,10 +333,23 @@ function deleteCustomer(id) {
 
     const confirmed = confirm(
         "Are you sure you want to delete " + customer.name + "?\n\n" +
-        "The customer will be removed, but their existing payment and invoice history will be kept."
+        "The customer will be removed from the active list, but their payment and invoice history will be preserved."
     );
 
     if (!confirmed) return;
+
+    let deletedCustomers = JSON.parse(
+        localStorage.getItem("netbillDeletedCustomers") || "[]"
+    );
+
+    if (!deletedCustomers.some(item => String(item) === String(id))) {
+        deletedCustomers.push(id);
+
+        localStorage.setItem(
+            "netbillDeletedCustomers",
+            JSON.stringify(deletedCustomers)
+        );
+    }
 
     customers = customers.filter(
         item => String(item.id) !== String(id)
@@ -348,7 +361,9 @@ function deleteCustomer(id) {
     updateCustomerDropdowns();
     displayReports();
 
-    alert("Customer deleted successfully. Payment and invoice history has been preserved.");
+    alert(
+        "Customer deleted successfully. Payment and invoice history has been preserved."
+    );
 }
 
 // RENEW CUSTOMER SUBSCRIPTION
@@ -596,7 +611,7 @@ function editPackage(id) {
     alert("Package updated successfully!");
 }
 
-// DELETE PACKAGE
+// DELETE PACKAGE - TRACK FOR CLOUD ARCHIVING
 function deletePackage(id) {
     const item = packages.find(
         packageItem => String(packageItem.id) === String(id)
@@ -623,10 +638,23 @@ function deletePackage(id) {
 
     const confirmed = confirm(
         "Are you sure you want to delete the package " +
-        item.name + "?\n\nThis action cannot be undone."
+        item.name + "?\n\nThe package will be removed from the active list and archived online."
     );
 
     if (!confirmed) return;
+
+    let deletedPackages = JSON.parse(
+        localStorage.getItem("netbillDeletedPackages") || "[]"
+    );
+
+    if (!deletedPackages.some(itemId => String(itemId) === String(id))) {
+        deletedPackages.push(id);
+
+        localStorage.setItem(
+            "netbillDeletedPackages",
+            JSON.stringify(deletedPackages)
+        );
+    }
 
     packages = packages.filter(
         packageItem => String(packageItem.id) !== String(id)
@@ -637,7 +665,7 @@ function deletePackage(id) {
     displayPackages();
     updateCustomerDropdowns();
 
-    alert("Package deleted successfully!");
+    alert("Package deleted successfully and queued for online archiving.");
 }
 
 // PACKAGE ACTION BUTTONS
@@ -915,7 +943,6 @@ function printInvoice(id) {
         return;
     }
 
-    // LOAD COMPANY PROFILE
     let company = {};
 
     try {
