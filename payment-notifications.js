@@ -1,15 +1,22 @@
-
+ 
 // ==========================================
-// NETBILL - PAYMENT CONFIRMATION NOTIFICATIONS
+// NETBILL - AUTOMATIC PAYMENT SMS NOTIFICATIONS
 // ==========================================
 
 const NETBILL_PAYMENT_HISTORY_KEY =
     "netbillPaymentNotificationHistory";
 
 function getPaymentNotificationHistory() {
-    return JSON.parse(
-        localStorage.getItem(NETBILL_PAYMENT_HISTORY_KEY) || "[]"
-    );
+    try {
+        const history = JSON.parse(
+            localStorage.getItem(NETBILL_PAYMENT_HISTORY_KEY) || "[]"
+        );
+
+        return Array.isArray(history) ? history : [];
+    } catch (error) {
+        console.error("Could not load SMS history:", error);
+        return [];
+    }
 }
 
 function savePaymentNotificationHistory(history) {
@@ -26,6 +33,34 @@ function formatPaymentAmount(amount) {
     });
 }
 
+function escapePaymentHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+    })[character]);
+}
+
+// Convert Kenyan phone numbers into 254 format.
+function normalizePaymentPhone(phone) {
+    let number = String(phone || "").replace(/\D/g, "");
+
+    if (number.startsWith("0")) {
+        number = "254" + number.substring(1);
+    } else if (number.startsWith("7") || number.startsWith("1")) {
+        number = "254" + number;
+    }
+
+    if (!/^254[17]\d{8}$/.test(number)) {
+        return null;
+    }
+
+    return number;
+}
+
+// CREATE PAYMENT CONFIRMATION
 function createPaymentConfirmation(payment) {
     const customer = customers.find(
         item => String(item.id) === String(payment.customerId)
@@ -33,22 +68,35 @@ function createPaymentConfirmation(payment) {
 
     const phone = customer ? customer.phone : "";
 
+    const packageName = customer
+        ? customer.package
+        : "Internet Package";
+
     const message =
-        `Dear ${payment.customerName}, we have successfully received your payment of ${formatPaymentAmount(payment.amount)} via ${payment.method}. Reference: ${payment.reference || "N/A"}. Payment date: ${payment.date}. Thank you for choosing our internet services. - NetBill`;
+        `Dear ${payment.customerName}, we have received your payment of ` +
+        `${formatPaymentAmount(payment.amount)} for ${packageName}. ` +
+        `Payment method: ${payment.method}. ` +
+        `Reference: ${payment.reference || "N/A"}. ` +
+        `Date: ${payment.date}. Thank you for choosing NetBill Internet Services.`;
 
     return {
         id: payment.id,
+        customerId: payment.customerId,
         customerName: payment.customerName,
         phone: phone,
+        packageName: packageName,
         amount: payment.amount,
         method: payment.method,
         reference: payment.reference,
         date: payment.date,
         message: message,
-        status: "Prepared"
+        status: "Prepared",
+        messageId: "",
+        error: ""
     };
 }
 
+// SAVE A NEW PAYMENT NOTIFICATION
 function recordPaymentNotification(payment) {
     if (!payment || !payment.id) return;
 
@@ -67,10 +115,125 @@ function recordPaymentNotification(payment) {
     savePaymentNotificationHistory(history);
 
     displayPaymentNotifications();
+
+    // Automatically send the SMS.
+    sendPaymentConfirmationSMS(notification.id);
 }
 
+// UPDATE NOTIFICATION STATUS
+function updatePaymentNotification(id, updates) {
+    const history = getPaymentNotificationHistory();
+
+    const notification = history.find(
+        item => String(item.id) === String(id)
+    );
+
+    if (!notification) return null;
+
+    Object.assign(notification, updates);
+
+    savePaymentNotificationHistory(history);
+
+    displayPaymentNotifications();
+
+    return notification;
+}
+
+// SEND SMS THROUGH SUPABASE EDGE FUNCTION
+async function sendPaymentConfirmationSMS(id) {
+    const history = getPaymentNotificationHistory();
+
+    const notification = history.find(
+        item => String(item.id) === String(id)
+    );
+
+    if (!notification) return;
+
+    // Prevent duplicate or simultaneous sends.
+    if (
+        notification.status === "Sending" ||
+        notification.status === "Accepted"
+    ) {
+        return;
+    }
+
+    const phone = normalizePaymentPhone(notification.phone);
+
+    if (!phone) {
+        updatePaymentNotification(id, {
+            status: "Failed",
+            error: "Invalid or missing customer phone number."
+        });
+
+        return;
+    }
+
+    const supabaseClient = window.netbillSupabase;
+
+    if (!supabaseClient || !supabaseClient.functions) {
+        updatePaymentNotification(id, {
+            status: "Failed",
+            error: "Supabase connection is not available."
+        });
+
+        return;
+    }
+
+    updatePaymentNotification(id, {
+        status: "Sending",
+        error: ""
+    });
+
+    try {
+        const { data, error } =
+            await supabaseClient.functions.invoke(
+                "send-flexcom-sms",
+                {
+                    body: {
+                        phone: phone,
+                        message: notification.message
+                    }
+                }
+            );
+
+        if (error) {
+            throw new Error(error.message || "SMS request failed.");
+        }
+
+        if (!data || data.success !== true) {
+            const errorMessage =
+                data?.result?.message ||
+                data?.error ||
+                "Mobile Sasa did not accept the SMS.";
+
+            throw new Error(errorMessage);
+        }
+
+        updatePaymentNotification(id, {
+            status: "Accepted",
+            messageId: data.result?.messageId || "",
+            error: ""
+        });
+
+        console.log(
+            "Payment SMS accepted:",
+            notification.customerName
+        );
+
+    } catch (error) {
+        console.error("Payment SMS failed:", error);
+
+        updatePaymentNotification(id, {
+            status: "Failed",
+            error: error.message || "SMS sending failed."
+        });
+    }
+}
+
+// DISPLAY PAYMENT NOTIFICATIONS
 function displayPaymentNotifications() {
     const paymentsPage = document.getElementById("payments");
+
     if (!paymentsPage) return;
 
     let panel = document.getElementById(
@@ -87,35 +250,87 @@ function displayPaymentNotifications() {
     const history = getPaymentNotificationHistory();
 
     let content = `
-        <h3>Payment Confirmation Notifications</h3>
-        <p>Prepare payment confirmation messages for your customers.</p>
+        <h3>Automatic Payment SMS Notifications</h3>
+
+        <p>
+            Customers receive payment confirmation SMS messages
+            automatically when payments are recorded.
+        </p>
     `;
 
     if (history.length === 0) {
         content += `
             <p>No payment confirmation messages yet.</p>
-            <p>Messages will appear here when you record customer payments.</p>
         `;
     } else {
         history.forEach((item, index) => {
+            const statusColor =
+                item.status === "Accepted" ? "green" :
+                item.status === "Failed" ? "red" :
+                item.status === "Sending" ? "#b7791f" : "#555";
+
             content += `
                 <div class="card" style="margin-top:12px;">
-                    <h4>${item.customerName}</h4>
 
-                    <p>Amount Paid:
+                    <h4>${escapePaymentHTML(item.customerName)}</h4>
+
+                    <p>
+                        Phone:
+                        <strong>${escapePaymentHTML(item.phone)}</strong>
+                    </p>
+
+                    <p>
+                        Amount Paid:
                         <strong>${formatPaymentAmount(item.amount)}</strong>
                     </p>
 
-                    <p>Payment Method: ${item.method}</p>
-                    <p>Reference: ${item.reference || "N/A"}</p>
-                    <p>Payment Date: ${item.date}</p>
+                    <p>
+                        Package:
+                        ${escapePaymentHTML(item.packageName || "-")}
+                    </p>
+
+                    <p>
+                        Payment Method:
+                        ${escapePaymentHTML(item.method)}
+                    </p>
+
+                    <p>
+                        Reference:
+                        ${escapePaymentHTML(item.reference || "N/A")}
+                    </p>
+
+                    <p>
+                        SMS Status:
+                        <strong style="color:${statusColor}">
+                            ${escapePaymentHTML(item.status)}
+                        </strong>
+                    </p>
+
+                    ${
+                        item.error
+                        ? `<p style="color:red;">
+                            ${escapePaymentHTML(item.error)}
+                           </p>`
+                        : ""
+                    }
 
                     <textarea
                         id="netbillPaymentMessage${index}"
                         rows="4"
                         style="width:100%; margin:8px 0;"
                         readonly
-                    >${item.message}</textarea>
+                    >${escapePaymentHTML(item.message)}</textarea>
+
+                    ${
+                        item.status === "Failed"
+                        ? `<button
+                            type="button"
+                            data-payment-retry="${escapePaymentHTML(item.id)}"
+                           >
+                            Retry SMS
+                           </button>`
+                        : ""
+                    }
 
                     <button
                         type="button"
@@ -137,6 +352,7 @@ function displayPaymentNotifications() {
                     >
                         Copy Message
                     </button>
+
                 </div>
             `;
         });
@@ -172,23 +388,9 @@ function displayPaymentNotifications() {
 
         if (whatsappButton) {
             whatsappButton.addEventListener("click", function () {
-                if (!item.phone) {
-                    alert("This customer has no phone number.");
-                    return;
-                }
+                const number = normalizePaymentPhone(item.phone);
 
-                let number = String(item.phone).replace(/\D/g, "");
-
-                if (number.startsWith("0")) {
-                    number = "254" + number.substring(1);
-                } else if (
-                    number.startsWith("7") ||
-                    number.startsWith("1")
-                ) {
-                    number = "254" + number;
-                }
-
-                if (number.length < 10) {
+                if (!number) {
                     alert("Please check the customer's phone number.");
                     return;
                 }
@@ -219,24 +421,57 @@ function displayPaymentNotifications() {
             });
         }
     });
+
+    panel.querySelectorAll("[data-payment-retry]").forEach(button => {
+        button.addEventListener("click", function () {
+            sendPaymentConfirmationSMS(
+                this.dataset.paymentRetry
+            );
+        });
+    });
 }
 
-// Connect to the existing payment-saving function.
-if (typeof savePayments === "function") {
-    const originalNetBillSavePayments = savePayments;
+// CONNECT TO THE EXISTING PAYMENT FORM
+function connectAutomaticPaymentSMS() {
+    const paymentForm = document.getElementById("paymentForm");
 
-    savePayments = function () {
-        originalNetBillSavePayments();
+    if (!paymentForm || paymentForm.dataset.smsConnected === "true") {
+        return;
+    }
 
-        if (Array.isArray(payments) && payments.length > 0) {
+    paymentForm.dataset.smsConnected = "true";
+
+    // The original payment handler runs first.
+    paymentForm.addEventListener("submit", function () {
+        setTimeout(function () {
+            const messageElement =
+                document.getElementById("paymentMessage");
+
+            if (
+                !messageElement ||
+                !messageElement.textContent.startsWith(
+                    "Payment recorded successfully!"
+                )
+            ) {
+                return;
+            }
+
+            if (!Array.isArray(payments) || payments.length === 0) {
+                return;
+            }
+
             const latestPayment = payments[payments.length - 1];
+
             recordPaymentNotification(latestPayment);
-        }
-    };
+
+        }, 0);
+    });
 }
 
+// START
+connectAutomaticPaymentSMS();
 displayPaymentNotifications();
 
 console.log(
-    "NetBill payment confirmation notifications loaded successfully."
+    "NetBill automatic payment SMS notifications loaded successfully."
 );
