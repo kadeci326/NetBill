@@ -347,49 +347,66 @@
             <h2>Payment Management</h2>
             <div class="form-container">
                 <h3>Record Customer Payment</h3>
-               
-<form id="paymentForm">
-    <label>Select Customer</label>
-    <select id="paymentCustomer" required>
-        <option value="">Select Customer</option>
-    </select>
 
-    <label>Payment Amount (Ksh)</label>
-    <input type="number" id="paymentAmount" min="1" step="0.01" required>
+                <form id="paymentForm">
+                    <label>Select Customer</label>
+                    <select id="paymentCustomer" required>
+                        <option value="">Select Customer</option>
+                    </select>
 
-    <label>Payment Method</label>
-    <select id="paymentMethod" required>
-        <option value="">Select Method</option>
-        <option value="M-Pesa">M-Pesa</option>
-        <option value="Cash">Cash</option>
-        <option value="Bank">Bank</option>
-    </select>
+                    <label>Payment Amount (Ksh)</label>
+                    <input type="number" id="paymentAmount" min="1" step="0.01" required>
 
-    <label>Payment Reference</label>
-    <input type="text" id="paymentReference">
+                    <label>Payment Method</label>
+                    <select id="paymentMethod" required>
+                        <option value="">Select Method</option>
+                        <option value="M-Pesa">M-Pesa</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Bank">Bank</option>
+                    </select>
 
-    <button type="submit">Record Payment</button>
+                    <label>Payment Reference</label>
+                    <input type="text" id="paymentReference">
 
-    <p id="paymentMessage"></p>
-</form>
+                    <button type="submit">Record Payment</button>
+                    <p id="paymentMessage"></p>
+                </form>
 
-<!-- M-PESA BUTTON - OUTSIDE THE PAYMENT FORM -->
-<div style="margin-top:15px; position:relative; z-index:99999;">
-    <button
-        type="button"
-        id="netbillStkButton"
-        onclick="window.dispatchEvent(new Event('netbill-mpesa-click'))"
-        style="display:block !important;
-        width:100%; padding:15px;
-        background:#168447; color:white;
-        border:none; border-radius:8px;
-        font-size:15px; font-weight:bold;
-        cursor:pointer; pointer-events:auto;">
-        Pay with M-Pesa (STK Push)
-    </button>
+                <!-- M-PESA PHONE NUMBER -->
+                <div id="netbillPhoneWrapper" style="margin-top:15px;margin-bottom:15px;">
+                    <label for="netbillPaymentPhone"
+                        style="display:block;font-weight:600;margin-bottom:7px;">
+                        Customer Phone Number (M-Pesa)
+                    </label>
 
-    <p id="netbillStkMessage"></p>
-</div>
+                    <input
+                        type="tel"
+                        id="netbillPaymentPhone"
+                        placeholder="e.g. 0712345678"
+                        autocomplete="tel"
+                        style="width:100%;box-sizing:border-box;padding:12px;
+                        border:1px solid #ccc;border-radius:8px;font-size:16px;"
+                    >
+
+                    <small style="display:block;margin-top:6px;color:#666;">
+                        Enter the phone number that should receive the M-Pesa prompt.
+                    </small>
+                </div>
+
+                <!-- M-PESA BUTTON -->
+                <div style="margin-top:15px;position:relative;z-index:99999;">
+                    <button
+                        type="button"
+                        id="netbillStkButton"
+                        onclick="window.dispatchEvent(new Event('netbill-mpesa-click'))"
+                        style="display:block !important;width:100%;padding:15px;
+                        background:#168447;color:white;border:none;border-radius:8px;
+                        font-size:15px;font-weight:bold;cursor:pointer;pointer-events:auto;">
+                        Pay with M-Pesa (STK Push)
+                    </button>
+
+                    <p id="netbillStkMessage"></p>
+                </div>
 
             </div>
 
