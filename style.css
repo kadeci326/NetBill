@@ -1077,3 +1077,33 @@ footer {
         width: 100%;
     }
 }
+
+/* ==========================================
+   NETBILL - FIX M-PESA BUTTON CLICKING
+   ========================================== */
+
+#netbillStkButton {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 99999 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    width: 100% !important;
+    min-height: 48px !important;
+    background: #168447 !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 14px !important;
+    margin-top: 12px !important;
+    font-size: 15px !important;
+    font-weight: bold !important;
+}
+
+#netbillStkButton:disabled {
+    cursor: not-allowed !important;
+    opacity: 0.7 !important;
+}
+
