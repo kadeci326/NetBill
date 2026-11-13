@@ -1,14 +1,19 @@
  
 // ==========================================
 // NETBILL - M-PESA STK PUSH INTEGRATION
-// CUSTOMER PHONE NUMBER VERSION
 // COMPLETE REPLACEMENT
+// ALTERNATIVE CUSTOMER PHONE NUMBER
+// DETAILED ERROR HANDLING
 // ==========================================
 
 (function () {
     "use strict";
 
     let requestInProgress = false;
+
+    // ==========================================
+    // FIND LOCAL CUSTOMER
+    // ==========================================
 
     function getLocalCustomer(customerId) {
         const customers = JSON.parse(
@@ -20,6 +25,10 @@
         );
     }
 
+    // ==========================================
+    // GET CUSTOMER PHONE
+    // ==========================================
+
     function getCustomerPhone(customer) {
         return (
             customer?.phone ||
@@ -27,6 +36,10 @@
             ""
         );
     }
+
+    // ==========================================
+    // PREPARE ALTERNATIVE PHONE NUMBER FIELD
+    // ==========================================
 
     function preparePhoneInput(button) {
         let wrapper = document.getElementById("netbillPhoneWrapper");
@@ -69,14 +82,17 @@
             document.getElementById("paymentCustomer");
 
         function loadCustomerPhone() {
-            if (!customerSelect) return;
+            if (!customerSelect || !phoneInput) return;
 
             const customer = getLocalCustomer(customerSelect.value);
 
             phoneInput.value = getCustomerPhone(customer);
         }
 
-        if (customerSelect && !customerSelect.dataset.phoneListenerAdded) {
+        if (
+            customerSelect &&
+            !customerSelect.dataset.phoneListenerAdded
+        ) {
             customerSelect.addEventListener("change", loadCustomerPhone);
             customerSelect.dataset.phoneListenerAdded = "true";
         }
@@ -88,12 +104,19 @@
         return phoneInput;
     }
 
+    // ==========================================
+    // NORMALIZE KENYAN PHONE NUMBER
+    // ==========================================
+
     function normalizePhone(value) {
         let phone = String(value || "").replace(/\D/g, "");
 
         if (phone.startsWith("0")) {
             phone = "254" + phone.substring(1);
-        } else if (phone.startsWith("7") || phone.startsWith("1")) {
+        } else if (
+            phone.startsWith("7") ||
+            phone.startsWith("1")
+        ) {
             phone = "254" + phone;
         }
 
@@ -105,6 +128,10 @@
 
         return phone;
     }
+
+    // ==========================================
+    // DISPLAY STATUS MESSAGE
+    // ==========================================
 
     function getMessageElement(button) {
         let message = document.getElementById("netbillStkMessage");
@@ -118,6 +145,7 @@
         message.style.display = "block";
         message.style.marginTop = "10px";
         message.style.fontWeight = "600";
+        message.style.whiteSpace = "pre-wrap";
 
         return message;
     }
@@ -127,6 +155,62 @@
         message.textContent = text;
         message.style.color = color;
     }
+
+    // ==========================================
+    // READ REAL SUPABASE FUNCTION ERROR
+    // ==========================================
+
+    async function getDetailedError(error) {
+        let message = error?.message || "M-Pesa request failed.";
+
+        // Supabase FunctionsHttpError may contain
+        // the actual Edge Function response in context.
+
+        if (error?.context) {
+            try {
+                const response = error.context;
+
+                if (typeof response.clone === "function") {
+                    const responseCopy = response.clone();
+
+                    let responseData;
+
+                    try {
+                        responseData = await responseCopy.json();
+                    } catch {
+                        responseData = await response.clone().text();
+                    }
+
+                    if (typeof responseData === "string") {
+                        message = responseData || message;
+                    } else if (responseData) {
+                        message =
+                            responseData.error ||
+                            responseData.message ||
+                            responseData.msg ||
+                            message;
+                    }
+                }
+            } catch (readError) {
+                console.warn(
+                    "Could not read detailed Edge Function response:",
+                    readError
+                );
+            }
+        }
+
+        // Handle ordinary JavaScript errors too.
+        if (error?.name === "FunctionsRelayError") {
+            message =
+                "Supabase could not reach the Edge Function. Check that it is deployed and available.";
+        }
+
+        return String(message);
+    }
+
+    // ==========================================
+    // SEND M-PESA REQUEST
+    // ==========================================
 
     async function sendMpesaRequest(button) {
         if (requestInProgress) return;
@@ -157,12 +241,17 @@
             const phoneInput = preparePhoneInput(button);
 
             if (!customerSelect || !amountInput) {
-                throw new Error("Payment form fields could not be found.");
+                throw new Error(
+                    "Payment form fields could not be found."
+                );
             }
 
             const customerId = customerSelect.value;
             const amount = Number(amountInput.value);
-            const companyId = localStorage.getItem("netbillCompanyId");
+
+            const companyId = localStorage.getItem(
+                "netbillCompanyId"
+            );
 
             if (!customerId) {
                 throw new Error("Please select a customer.");
@@ -178,24 +267,37 @@
                 );
             }
 
-            // Use the number entered by the user.
             const phone = normalizePhone(phoneInput.value);
+
+            // ==================================
+            // CHECK LOGIN SESSION
+            // ==================================
 
             const {
                 data: sessionData,
                 error: sessionError
             } = await db.auth.getSession();
 
-            if (sessionError) throw sessionError;
+            if (sessionError) {
+                throw sessionError;
+            }
 
             if (!sessionData.session) {
-                throw new Error("Please log in again.");
+                throw new Error(
+                    "Your login session has expired. Please log in again."
+                );
             }
+
+            // ==================================
+            // CHECK LOCAL CUSTOMER
+            // ==================================
 
             const localCustomer = getLocalCustomer(customerId);
 
             if (!localCustomer) {
-                throw new Error("Selected customer was not found.");
+                throw new Error(
+                    "Selected customer was not found in NetBill."
+                );
             }
 
             showMessage(
@@ -203,6 +305,10 @@
                 "Checking customer account...",
                 "#142b4a"
             );
+
+            // ==================================
+            // FIND CUSTOMER IN SUPABASE
+            // ==================================
 
             const {
                 data: onlineCustomers,
@@ -212,7 +318,12 @@
                 .select("id, customer_data")
                 .eq("company_id", companyId);
 
-            if (customerError) throw customerError;
+            if (customerError) {
+                throw new Error(
+                    "Could not check the cloud customer account: " +
+                    customerError.message
+                );
+            }
 
             const onlineCustomer = (onlineCustomers || []).find(
                 row =>
@@ -225,6 +336,10 @@
                     "Customer has not synced to the cloud. Please sync the customer first."
                 );
             }
+
+            // ==================================
+            // SEND REQUEST TO EDGE FUNCTION
+            // ==================================
 
             showMessage(
                 button,
@@ -244,7 +359,12 @@
                 }
             });
 
-            if (error) throw error;
+            if (error) {
+                const detailedMessage =
+                    await getDetailedError(error);
+
+                throw new Error(detailedMessage);
+            }
 
             if (!data || !data.success) {
                 throw new Error(
@@ -253,6 +373,10 @@
                     "M-Pesa request was not successful."
                 );
             }
+
+            // ==================================
+            // SUCCESS
+            // ==================================
 
             showMessage(
                 button,
@@ -264,11 +388,17 @@
             button.textContent = "STK Push Sent";
 
         } catch (error) {
-            console.error("NetBill M-Pesa error:", error);
+            console.error(
+                "NETBILL M-PESA ERROR:",
+                error
+            );
+
+            const detailedMessage =
+                await getDetailedError(error);
 
             showMessage(
                 button,
-                error.message || "M-Pesa request failed.",
+                "M-Pesa Error: " + detailedMessage,
                 "red"
             );
 
@@ -281,19 +411,34 @@
         }
     }
 
-    // Handle the existing HTML button.
+    // ==========================================
+    // HANDLE M-PESA BUTTON CLICK
+    // ==========================================
+
     document.addEventListener("click", function (event) {
-        const button = event.target.closest("#netbillStkButton");
+        const target = event.target;
+
+        if (!target || typeof target.closest !== "function") {
+            return;
+        }
+
+        const button = target.closest("#netbillStkButton");
 
         if (!button) return;
 
         event.preventDefault();
+
         sendMpesaRequest(button);
     });
 
-    // Prepare the button and phone number field.
+    // ==========================================
+    // PREPARE BUTTON AND PHONE FIELD
+    // ==========================================
+
     function prepareButton() {
-        const button = document.getElementById("netbillStkButton");
+        const button = document.getElementById(
+            "netbillStkButton"
+        );
 
         if (!button) return;
 
@@ -310,7 +455,10 @@
     }
 
     if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", prepareButton);
+        document.addEventListener(
+            "DOMContentLoaded",
+            prepareButton
+        );
     } else {
         prepareButton();
     }
