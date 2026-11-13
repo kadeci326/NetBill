@@ -1,181 +1,217 @@
  
-// ==========================================
-// NETBILL - M-PESA STK PUSH INTEGRATION
-// ==========================================
+ // ==========================================
+ // NETBILL - M-PESA STK PUSH INTEGRATION
+ // COMPLETE REPLACEMENT
+ // ==========================================
 
 (function () {
-    function initializeMpesa() {
-        const paymentForm = document.getElementById("paymentForm");
-        const button = document.getElementById("netbillStkButton");
-        const message = document.getElementById("netbillStkMessage");
+    "use strict";
 
-        if (!paymentForm || !button) return;
+    let requestInProgress = false;
 
-        // Make sure the existing HTML button is visible
-        button.style.display = "block";
-        button.style.visibility = "visible";
-        button.style.opacity = "1";
-        button.style.width = "100%";
-        button.style.backgroundColor = "#168447";
-        button.style.color = "#ffffff";
-        button.style.padding = "12px";
-        button.style.marginTop = "10px";
-        button.style.border = "0";
-        button.style.borderRadius = "6px";
-        button.style.cursor = "pointer";
+    function getMessageElement(button) {
+        let message = document.getElementById("netbillStkMessage");
 
-        // Prevent attaching the click handler more than once
-        if (button.dataset.initialized === "true") return;
-        button.dataset.initialized = "true";
-
-        function showMessage(text, color) {
-            if (!message) return;
-
-            message.textContent = text;
-            message.style.display = "block";
-            message.style.color = color;
-            message.style.marginTop = "10px";
+        if (!message) {
+            message = document.createElement("p");
+            message.id = "netbillStkMessage";
+            button.insertAdjacentElement("afterend", message);
         }
 
-        button.addEventListener("click", async function () {
-            const originalText = "Pay with M-Pesa (STK Push)";
+        message.style.display = "block";
+        message.style.marginTop = "10px";
+        message.style.fontWeight = "600";
 
-            button.disabled = true;
-            button.textContent = "Connecting to M-Pesa...";
+        return message;
+    }
 
-            try {
-                const db = window.netbillSupabase;
+    function showMessage(button, text, color) {
+        const message = getMessageElement(button);
+        message.textContent = text;
+        message.style.color = color;
+    }
 
-                if (!db) {
-                    throw new Error(
-                        "Supabase is not connected. Please refresh the page."
-                    );
-                }
+    async function sendMpesaRequest(button) {
+        if (requestInProgress) return;
 
-                const customerSelect =
-                    document.getElementById("paymentCustomer");
+        requestInProgress = true;
 
-                const amountInput =
-                    document.getElementById("paymentAmount");
+        const originalText = "Pay with M-Pesa (STK Push)";
 
-                if (!customerSelect || !amountInput) {
-                    throw new Error("Payment form fields were not found.");
-                }
+        button.disabled = true;
+        button.textContent = "Connecting to M-Pesa...";
+        button.style.opacity = "0.7";
 
-                const customerLocalId = customerSelect.value;
-                const amount = Number(amountInput.value);
-                const companyId =
-                    localStorage.getItem("netbillCompanyId");
+        try {
+            const db = window.netbillSupabase;
 
-                if (!customerLocalId) {
-                    throw new Error("Please select a customer.");
-                }
-
-                if (!Number.isFinite(amount) || amount < 1) {
-                    throw new Error("Please enter a valid payment amount.");
-                }
-
-                if (!companyId) {
-                    throw new Error(
-                        "Company account not found. Please log in again."
-                    );
-                }
-
-                const {
-                    data: sessionData,
-                    error: sessionError
-                } = await db.auth.getSession();
-
-                if (sessionError) throw sessionError;
-
-                if (!sessionData.session) {
-                    throw new Error("Your session has expired. Please log in again.");
-                }
-
-                const customers = JSON.parse(
-                    localStorage.getItem("netbillCustomers") || "[]"
+            if (!db) {
+                throw new Error(
+                    "Supabase is not connected. Please refresh the page."
                 );
-
-                const localCustomer = customers.find(
-                    customer =>
-                        String(customer.id) === String(customerLocalId)
-                );
-
-                if (!localCustomer) {
-                    throw new Error("Selected customer was not found.");
-                }
-
-                showMessage("Checking customer account...", "#142b4a");
-
-                const {
-                    data: onlineCustomers,
-                    error: customerError
-                } = await db
-                    .from("netbill_customers")
-                    .select("id, customer_data")
-                    .eq("company_id", companyId);
-
-                if (customerError) throw customerError;
-
-                const onlineCustomer = (onlineCustomers || []).find(
-                    row =>
-                        String(row.customer_data?.id) ===
-                        String(localCustomer.id)
-                );
-
-                if (!onlineCustomer) {
-                    throw new Error(
-                        "This customer has not synced to the cloud yet."
-                    );
-                }
-
-                showMessage("Sending M-Pesa payment request...", "#142b4a");
-
-                const {
-                    data,
-                    error
-                } = await db.functions.invoke("mpesa-stk-push", {
-                    body: {
-                        customerId: onlineCustomer.id,
-                        companyId: companyId,
-                        amount: amount
-                    }
-                });
-
-                if (error) throw error;
-
-                if (!data || !data.success) {
-                    throw new Error(
-                        data?.error ||
-                        data?.message ||
-                        "M-Pesa request failed."
-                    );
-                }
-
-                showMessage(
-                    "STK Push sent successfully! Ask the customer to check their phone and enter their M-Pesa PIN.",
-                    "green"
-                );
-
-                button.textContent = "STK Push Sent";
-
-            } catch (error) {
-                showMessage(
-                    error.message || "Could not send M-Pesa request.",
-                    "red"
-                );
-
-                button.textContent = originalText;
-
-            } finally {
-                button.disabled = false;
             }
-        });
+
+            const customerSelect =
+                document.getElementById("paymentCustomer");
+
+            const amountInput =
+                document.getElementById("paymentAmount");
+
+            if (!customerSelect || !amountInput) {
+                throw new Error("Payment form fields could not be found.");
+            }
+
+            const customerId = customerSelect.value;
+            const amount = Number(amountInput.value);
+            const companyId = localStorage.getItem("netbillCompanyId");
+
+            if (!customerId) {
+                throw new Error("Please select a customer.");
+            }
+
+            if (!Number.isFinite(amount) || amount < 1) {
+                throw new Error("Please enter a valid amount.");
+            }
+
+            if (!companyId) {
+                throw new Error("Company account not found. Please log in again.");
+            }
+
+            const {
+                data: sessionData,
+                error: sessionError
+            } = await db.auth.getSession();
+
+            if (sessionError) throw sessionError;
+
+            if (!sessionData.session) {
+                throw new Error("Please log in again.");
+            }
+
+            const customers = JSON.parse(
+                localStorage.getItem("netbillCustomers") || "[]"
+            );
+
+            const localCustomer = customers.find(
+                customer =>
+                    String(customer.id) === String(customerId)
+            );
+
+            if (!localCustomer) {
+                throw new Error("Selected customer was not found.");
+            }
+
+            showMessage(
+                button,
+                "Checking customer account...",
+                "#142b4a"
+            );
+
+            const {
+                data: onlineCustomers,
+                error: customerError
+            } = await db
+                .from("netbill_customers")
+                .select("id, customer_data")
+                .eq("company_id", companyId);
+
+            if (customerError) throw customerError;
+
+            const onlineCustomer = (onlineCustomers || []).find(
+                row =>
+                    String(row.customer_data?.id) ===
+                    String(localCustomer.id)
+            );
+
+            if (!onlineCustomer) {
+                throw new Error(
+                    "Customer has not synced to the cloud. Please sync the customer first."
+                );
+            }
+
+            showMessage(
+                button,
+                "Sending M-Pesa payment request...",
+                "#142b4a"
+            );
+
+            const {
+                data,
+                error
+            } = await db.functions.invoke("mpesa-stk-push", {
+                body: {
+                    customerId: onlineCustomer.id,
+                    companyId: companyId,
+                    amount: amount
+                }
+            });
+
+            if (error) throw error;
+
+            if (!data || !data.success) {
+                throw new Error(
+                    data?.error ||
+                    data?.message ||
+                    "M-Pesa request was not successful."
+                );
+            }
+
+            showMessage(
+                button,
+                "STK Push sent! Ask the customer to check their phone and enter their M-Pesa PIN.",
+                "green"
+            );
+
+            button.textContent = "STK Push Sent";
+
+        } catch (error) {
+            console.error("NetBill M-Pesa error:", error);
+
+            showMessage(
+                button,
+                error.message || "M-Pesa request failed.",
+                "red"
+            );
+
+            button.textContent = originalText;
+
+        } finally {
+            button.disabled = false;
+            button.style.opacity = "1";
+            requestInProgress = false;
+        }
+    }
+
+    // One click listener handles the existing HTML button
+    document.addEventListener("click", function (event) {
+        const button = event.target.closest("#netbillStkButton");
+
+        if (!button) return;
+
+        event.preventDefault();
+        sendMpesaRequest(button);
+    });
+
+    // Make the existing button visible and clickable
+    function prepareButton() {
+        const button = document.getElementById("netbillStkButton");
+
+        if (!button) return;
+
+        button.type = "button";
+        button.disabled = false;
+        button.style.display = "block";
+        button.style.visibility = "visible";
+        button.style.pointerEvents = "auto";
+        button.style.cursor = "pointer";
+        button.style.backgroundColor = "#168447";
+        button.style.color = "white";
     }
 
     if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initializeMpesa);
+        document.addEventListener("DOMContentLoaded", prepareButton);
     } else {
-        initializeMpesa();
+        prepareButton();
     }
+
 })();
