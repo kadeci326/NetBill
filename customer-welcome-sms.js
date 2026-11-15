@@ -1,7 +1,7 @@
-
- // ==========================================
- // NETBILL - AUTOMATIC NEW CUSTOMER WELCOME SMS
- // ==========================================
+ 
+// ==========================================
+// NETBILL - AUTOMATIC NEW CUSTOMER WELCOME SMS
+// ==========================================
 
 (function () {
     "use strict";
@@ -36,16 +36,17 @@
         const phone = normalizePhone(customer.phone);
 
         if (!phone) {
-            console.error("Welcome SMS: Invalid customer phone number.");
+            console.error("Welcome SMS: Invalid phone number.");
             return;
         }
 
         const history = getHistory();
-        const alreadySent = history.some(
-            item => String(item.customerId) === String(customer.id)
-        );
 
-        if (alreadySent) return;
+        if (history.some(item =>
+            String(item.customerId) === String(customer.id)
+        )) {
+            return;
+        }
 
         const supabaseClient = window.netbillSupabase;
 
@@ -98,15 +99,13 @@
 
             record.status = "Accepted";
             record.messageId = data.result?.messageId || "";
-
             saveHistory(history);
 
-            console.log("Welcome SMS accepted for:", customer.name);
+            console.log("Welcome SMS accepted:", customer.name);
 
         } catch (error) {
             record.status = "Failed";
             record.error = error.message || "SMS sending failed.";
-
             saveHistory(history);
 
             console.error("Welcome SMS failed:", error);
@@ -122,6 +121,7 @@
 
         form.dataset.welcomeSMSConnected = "true";
 
+        // CAPTURE PHASE: run BEFORE the normal customer registration handler.
         form.addEventListener("submit", function () {
             const previousCustomers = JSON.parse(
                 localStorage.getItem("netbillCustomers") || "[]"
@@ -131,6 +131,7 @@
                 customer => String(customer.id)
             );
 
+            // Wait for the normal registration handler to save the customer.
             setTimeout(function () {
                 const messageElement =
                     document.getElementById("customerMessage");
@@ -156,8 +157,9 @@
                     sendWelcomeSMS(newCustomer);
                 }
 
-            }, 100);
-        });
+            }, 300);
+
+        }, true);
     }
 
     if (document.readyState === "loading") {
@@ -169,6 +171,6 @@
         connectWelcomeSMS();
     }
 
-    console.log("NetBill customer welcome SMS system loaded.");
+    console.log("NetBill welcome SMS system loaded.");
 
 })();
