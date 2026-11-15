@@ -10,12 +10,14 @@
 
     let customersBeforeRegistration = [];
 
-    // READ SAVED CUSTOMERS
+    // GET SAVED CUSTOMERS
     function getSavedCustomers() {
         try {
-            return JSON.parse(
+            const saved = JSON.parse(
                 localStorage.getItem("netbillCustomers") || "[]"
             );
+
+            return Array.isArray(saved) ? saved : [];
         } catch (error) {
             return [];
         }
@@ -27,21 +29,24 @@
 
         if (number.startsWith("0")) {
             number = "254" + number.substring(1);
-        }
-
-        if (number.startsWith("7") || number.startsWith("1")) {
+        } else if (
+            number.startsWith("7") ||
+            number.startsWith("1")
+        ) {
             number = "254" + number;
         }
 
         return /^254[17]\d{8}$/.test(number) ? number : null;
     }
 
-    // READ SMS HISTORY
+    // GET SMS HISTORY
     function getSMSHistory() {
         try {
-            return JSON.parse(
+            const history = JSON.parse(
                 localStorage.getItem(HISTORY_KEY) || "[]"
             );
+
+            return Array.isArray(history) ? history : [];
         } catch (error) {
             return [];
         }
@@ -62,15 +67,15 @@
 
         try {
             if (!customer || !customer.id) {
-                return;
+                throw new Error("Customer details could not be found.");
             }
 
             const history = getSMSHistory();
 
-            // PREVENT DUPLICATE WELCOME MESSAGES
+            // PREVENT DUPLICATE ACCEPTED MESSAGES
             if (history.some(item =>
                 String(item.customerId) === String(customer.id) &&
-                item.status === "Sent"
+                item.status === "Accepted"
             )) {
                 return;
             }
@@ -79,27 +84,32 @@
 
             if (!phone) {
                 throw new Error(
-                    "Invalid phone number. Use a valid Kenyan number."
+                    "Invalid or missing customer phone number."
                 );
             }
 
             const supabaseClient = window.netbillSupabase;
 
-            if (!supabaseClient ||
-                !supabaseClient.functions) {
+            if (!supabaseClient || !supabaseClient.functions) {
                 throw new Error(
-                    "NetBill SMS connection is not ready."
+                    "Supabase connection is not available."
                 );
             }
 
             const smsMessage =
-                "Hello " + customer.name +
-                ", welcome to NetBill Internet Services! " +
-                "Your customer account has been registered successfully. " +
-                "Your package is " + customer.package +
-                ". Thank you for choosing us!";
+                `Hello ${customer.name}, welcome to NetBill Internet Services! ` +
+                `Your customer account has been registered successfully. ` +
+                `Your package is ${customer.package}. ` +
+                `Thank you for choosing us!`;
 
-            const response =
+            if (messageElement) {
+                messageElement.style.color = "#b7791f";
+                messageElement.textContent =
+                    "Customer registered. Sending welcome SMS...";
+            }
+
+            // USE THE SAME REQUEST FORMAT AS PAYMENT SMS
+            const { data, error } =
                 await supabaseClient.functions.invoke(
                     "send-flexcom-sms",
                     {
@@ -110,47 +120,85 @@
                     }
                 );
 
-            if (response.error) {
-                throw response.error;
-            }
-
-            if (!response.data ||
-                response.data.success !== true) {
+            if (error) {
                 throw new Error(
-                    response.data?.message ||
-                    response.data?.error ||
-                    "SMS provider did not confirm delivery."
+                    error.message || "SMS request failed."
                 );
             }
 
-            history.push({
+            // USE THE SAME RESPONSE CHECK AS PAYMENT SMS
+            if (!data || data.success !== true) {
+                const errorMessage =
+                    data?.result?.message ||
+                    data?.error ||
+                    "Mobile Sasa did not accept the welcome SMS.";
+
+                throw new Error(errorMessage);
+            }
+
+            // SAVE SUCCESSFUL SMS
+            const existingIndex = history.findIndex(item =>
+                String(item.customerId) === String(customer.id)
+            );
+
+            const record = {
                 customerId: customer.id,
                 phone: phone,
-                status: "Sent",
+                status: "Accepted",
+                messageId: data.result?.messageId || "",
                 date: new Date().toISOString()
-            });
+            };
+
+            if (existingIndex >= 0) {
+                history[existingIndex] = record;
+            } else {
+                history.push(record);
+            }
 
             saveSMSHistory(history);
 
             if (messageElement) {
                 messageElement.style.color = "green";
                 messageElement.textContent =
-                    "Customer added successfully! Welcome SMS sent.";
+                    "Customer added successfully! Welcome SMS accepted.";
             }
 
         } catch (error) {
             console.error("WELCOME SMS ERROR:", error);
 
+            // SAVE FAILURE DETAILS
+            const history = getSMSHistory();
+
+            const existingIndex = history.findIndex(item =>
+                String(item.customerId) === String(customer.id)
+            );
+
+            const failedRecord = {
+                customerId: customer.id,
+                phone: customer.phone || "",
+                status: "Failed",
+                error: error.message || "SMS sending failed.",
+                date: new Date().toISOString()
+            };
+
+            if (existingIndex >= 0) {
+                history[existingIndex] = failedRecord;
+            } else {
+                history.push(failedRecord);
+            }
+
+            saveSMSHistory(history);
+
             if (messageElement) {
                 messageElement.style.color = "darkorange";
                 messageElement.textContent =
                     "Customer registered successfully, but welcome SMS failed: " +
-                    (error.message || "Please check your SMS connection.");
+                    (error.message || "SMS sending failed.");
             }
         }
     }
 
-    // CAPTURE CUSTOMER LIST BEFORE REGISTRATION
+    // FIND CUSTOMER FORM
     const customerForm =
         document.getElementById("customerForm");
 
@@ -159,11 +207,12 @@
         return;
     }
 
+    // CAPTURE CUSTOMER LIST BEFORE REGISTRATION
     customerForm.addEventListener("submit", function () {
         customersBeforeRegistration = getSavedCustomers();
     }, true);
 
-    // RUN AFTER THE MAIN CUSTOMER REGISTRATION CODE
+    // CHECK FOR NEW CUSTOMER AFTER MAIN REGISTRATION HANDLER
     customerForm.addEventListener("submit", function () {
         const previousIds = new Set(
             customersBeforeRegistration.map(customer =>
@@ -183,6 +232,6 @@
 
     }, false);
 
-    console.log("NetBill welcome SMS integration is ready.");
+    console.log("NetBill welcome SMS integration loaded.");
 
 })();
