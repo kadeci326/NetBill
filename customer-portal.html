@@ -5,20 +5,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NetBill Customer Portal</title>
+
     <style>
         * { box-sizing: border-box; }
+
         body {
             margin: 0;
             font-family: Arial, sans-serif;
             background: #f1f5f9;
             color: #1e293b;
         }
+
         header {
             background: #12345a;
             color: white;
             padding: 22px;
             text-align: center;
         }
+
         main {
             max-width: 450px;
             margin: 40px auto;
@@ -27,12 +31,15 @@
             border-radius: 12px;
             box-shadow: 0 4px 18px #00000012;
         }
+
         h2 { text-align: center; }
+
         label {
             display: block;
             margin-top: 15px;
             font-weight: bold;
         }
+
         input {
             width: 100%;
             padding: 13px;
@@ -40,6 +47,7 @@
             border: 1px solid #cbd5e1;
             border-radius: 7px;
         }
+
         button {
             width: 100%;
             padding: 13px;
@@ -51,100 +59,188 @@
             font-size: 16px;
             cursor: pointer;
         }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #passkeyButton { background: #087c57; }
+        #registerPasskeyButton { background: #12345a; }
         #logoutButton { background: #dc2626; }
+
         #message {
             text-align: center;
             margin-top: 15px;
             overflow-wrap: anywhere;
         }
+
         #account {
             display: none;
             text-align: center;
         }
+
+        #passkeyRegistration {
+            display: none;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #cbd5e1;
+        }
+
+        .small {
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.5;
+        }
     </style>
 </head>
+
 <body>
-    <header>
-        <h1>NETBILL</h1>
-        <p>Customer Self-Service Portal</p>
-    </header>
 
-    <main>
-        <section id="loginSection">
-            <h2>Customer Login</h2>
+<header>
+    <h1>NETBILL</h1>
+    <p>Customer Self-Service Portal</p>
+</header>
 
-            <form id="loginForm">
-                <label>Email Address</label>
-                <input type="email" id="email" required>
+<main>
 
-                <label>Password</label>
-                <input type="password" id="password" required>
+    <section id="loginSection">
 
-                <button type="submit">Login</button>
-            </form>
-        </section>
+        <h2>Customer Login</h2>
 
-        <section id="account">
-            <h2>Welcome to NetBill!</h2>
-            <p id="customerEmail"></p>
-            <p>Your account login is successful.</p>
-            <button id="logoutButton">Logout</button>
-        </section>
+        <form id="loginForm">
 
-        <p id="message"></p>
-    </main>
+            <label>Email Address</label>
+            <input type="email" id="email" required>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-config.js"></script>
+            <label>Password</label>
+            <input type="password" id="password" required>
 
-    <script>
-        const db = window.netbillSupabase;
+            <button type="submit" id="loginButton">
+                Login
+            </button>
 
-        const loginForm = document.getElementById("loginForm");
-        const loginSection = document.getElementById("loginSection");
-        const account = document.getElementById("account");
-        const message = document.getElementById("message");
+        </form>
 
-        function showAccount(user) {
-            loginSection.style.display = "none";
-            account.style.display = "block";
-            document.getElementById("customerEmail").textContent =
-                user.email || "";
-            message.textContent = "";
+        <button type="button" id="passkeyButton">
+            LOGIN WITH FINGERPRINT / PASSKEY
+        </button>
+
+        <p class="small">
+            You can use your registered device fingerprint,
+            face recognition or device PIN.
+        </p>
+
+    </section>
+
+    <section id="account">
+
+        <h2>Welcome to NetBill!</h2>
+
+        <p id="customerEmail"></p>
+
+        <p>Your account login is successful.</p>
+
+        <div id="passkeyRegistration">
+
+            <h3>Secure Your Account</h3>
+
+            <p class="small">
+                Register a passkey on this device for faster
+                and easier future logins.
+            </p>
+
+            <button type="button" id="registerPasskeyButton">
+                REGISTER THIS DEVICE
+            </button>
+
+        </div>
+
+        <button type="button" id="logoutButton">
+            Logout
+        </button>
+
+    </section>
+
+    <p id="message"></p>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+
+<script>
+
+    const db = window.netbillSupabase;
+
+    const loginForm = document.getElementById("loginForm");
+    const loginSection = document.getElementById("loginSection");
+    const account = document.getElementById("account");
+    const message = document.getElementById("message");
+
+    const passkeyButton = document.getElementById("passkeyButton");
+    const registerPasskeyButton =
+        document.getElementById("registerPasskeyButton");
+
+    function showMessage(text) {
+        message.textContent = text;
+    }
+
+    function showAccount(user) {
+
+        loginSection.style.display = "none";
+        account.style.display = "block";
+
+        document.getElementById("customerEmail").textContent =
+            user.email || "";
+
+        document.getElementById("passkeyRegistration").style.display =
+            "block";
+
+        showMessage("");
+
+    }
+
+    async function checkSession() {
+
+        if (!db) {
+            showMessage("Supabase connection not found. Check supabase-config.js.");
+            return;
         }
 
-        async function checkSession() {
-            if (!db) {
-                message.textContent =
-                    "Supabase connection not found. Check supabase-config.js.";
-                return;
-            }
+        const { data, error } = await db.auth.getSession();
 
-            const { data, error } = await db.auth.getSession();
-
-            if (error) {
-                message.textContent = error.message;
-                return;
-            }
-
-            if (data.session) {
-                showAccount(data.session.user);
-            }
+        if (error) {
+            showMessage(error.message);
+            return;
         }
 
-        loginForm.addEventListener("submit", async function(event) {
-            event.preventDefault();
+        if (data.session) {
+            showAccount(data.session.user);
+        }
 
-            if (!db) {
-                message.textContent =
-                    "Supabase connection not found. Check supabase-config.js.";
-                return;
-            }
+    }
 
-            message.textContent = "Logging in...";
+    // CUSTOMER PASSWORD LOGIN
 
-            const email = document.getElementById("email").value.trim();
-            const password = document.getElementById("password").value;
+    loginForm.addEventListener("submit", async function(event) {
+
+        event.preventDefault();
+
+        if (!db) {
+            showMessage("Supabase connection not found.");
+            return;
+        }
+
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+
+        const loginButton = document.getElementById("loginButton");
+
+        loginButton.disabled = true;
+        showMessage("Logging in...");
+
+        try {
 
             const { data, error } = await db.auth.signInWithPassword({
                 email: email,
@@ -152,29 +248,128 @@
             });
 
             if (error) {
-                message.textContent = "Login failed: " + error.message;
+                showMessage("Login failed: " + error.message);
                 return;
             }
 
             showAccount(data.user);
+
+        } catch (error) {
+
+            showMessage("Login failed: " + error.message);
+
+        } finally {
+
+            loginButton.disabled = false;
+
+        }
+
+    });
+
+    // REGISTER CUSTOMER PASSKEY
+
+    registerPasskeyButton.addEventListener("click", async function() {
+
+        if (!db) {
+            showMessage("Supabase connection not found.");
+            return;
+        }
+
+        registerPasskeyButton.disabled = true;
+        showMessage("Preparing passkey registration...");
+
+        try {
+
+            const { data: sessionData, error: sessionError } =
+                await db.auth.getSession();
+
+            if (sessionError) throw sessionError;
+
+            if (!sessionData.session) {
+                showMessage("Please log in with your password first.");
+                return;
+            }
+
+            const { data, error } =
+                await db.auth.registerPasskey();
+
+            if (error) throw error;
+
+            showMessage("Passkey registered successfully!");
+
+        } catch (error) {
+
+            showMessage("Passkey registration failed: " + error.message);
+
+        } finally {
+
+            registerPasskeyButton.disabled = false;
+
+        }
+
+    });
+
+    // CUSTOMER PASSKEY LOGIN
+
+    passkeyButton.addEventListener("click", async function() {
+
+        if (!db) {
+            showMessage("Supabase connection not found.");
+            return;
+        }
+
+        passkeyButton.disabled = true;
+        showMessage("Waiting for device authentication...");
+
+        try {
+
+            const { data, error } =
+                await db.auth.signInWithPasskey();
+
+            if (error) throw error;
+
+            if (!data.user) {
+                throw new Error("No customer account was returned.");
+            }
+
+            showAccount(data.user);
+
+        } catch (error) {
+
+            showMessage("Passkey login failed: " + error.message);
+
+        } finally {
+
+            passkeyButton.disabled = false;
+
+        }
+
+    });
+
+    // CUSTOMER LOGOUT
+
+    document.getElementById("logoutButton")
+        .addEventListener("click", async function() {
+
+            const { error } = await db.auth.signOut();
+
+            if (error) {
+                showMessage(error.message);
+                return;
+            }
+
+            account.style.display = "none";
+            loginSection.style.display = "block";
+
+            loginForm.reset();
+
+            showMessage("You have logged out successfully.");
+
         });
 
-        document.getElementById("logoutButton")
-            .addEventListener("click", async function() {
-                const { error } = await db.auth.signOut();
+    checkSession();
 
-                if (error) {
-                    message.textContent = error.message;
-                    return;
-                }
+</script>
 
-                account.style.display = "none";
-                loginSection.style.display = "block";
-                loginForm.reset();
-                message.textContent = "You have logged out successfully.";
-            });
-
-        checkSession();
-    </script>
 </body>
 </html>
