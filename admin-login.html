@@ -29,10 +29,7 @@ body {
     box-shadow: 0 5px 25px rgba(0,0,0,0.1);
 }
 
-h1 {
-    text-align: center;
-    color: #123b68;
-}
+h1 { text-align: center; color: #123b68; }
 
 .subtitle {
     text-align: center;
@@ -56,24 +53,39 @@ input {
 }
 
 button {
+    width: 100%;
+    margin-top: 15px;
+    padding: 13px;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: bold;
     cursor: pointer;
 }
 
-.submit-btn {
-    width: 100%;
-    margin-top: 22px;
-    padding: 13px;
-    background: #123b68;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 16px;
-    font-weight: bold;
-}
-
-.submit-btn:disabled {
+button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+.submit-btn {
+    background: #123b68;
+    color: white;
+}
+
+.passkey-btn {
+    background: #168447;
+    color: white;
+}
+
+.register-btn {
+    background: #0878d1;
+    color: white;
+}
+
+.continue-btn {
+    background: #123b68;
+    color: white;
 }
 
 #message {
@@ -83,6 +95,7 @@ button {
     border-radius: 6px;
     line-height: 1.5;
     overflow-wrap: anywhere;
+    white-space: pre-line;
 }
 
 #message.success {
@@ -96,6 +109,19 @@ button {
     background: #ffe8e8;
     color: #a32121;
 }
+
+#passkeySetup {
+    display: none;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+}
+
+#passkeySetup p {
+    color: #555;
+    line-height: 1.5;
+    text-align: center;
+}
 </style>
 </head>
 
@@ -106,31 +132,58 @@ button {
     <h1>NETBILL</h1>
     <p class="subtitle">ISP Billing & Management System</p>
 
-    <h3>Administrator Login</h3>
+    <section id="loginSection">
 
-    <form id="loginForm">
+        <h3>Administrator Login</h3>
 
-        <label>Email Address</label>
-        <input
-            type="email"
-            id="loginEmail"
-            placeholder="Enter your owner email"
-            required
-        >
+        <form id="loginForm">
 
-        <label>Password</label>
-        <input
-            type="password"
-            id="loginPassword"
-            placeholder="Enter your owner password"
-            required
-        >
+            <label>Email Address</label>
+            <input
+                type="email"
+                id="loginEmail"
+                placeholder="Enter your owner email"
+                required
+            >
 
-        <button type="submit" class="submit-btn" id="loginButton">
-            LOGIN
+            <label>Password</label>
+            <input
+                type="password"
+                id="loginPassword"
+                placeholder="Enter your owner password"
+                required
+            >
+
+            <button type="submit" class="submit-btn" id="loginButton">
+                LOGIN WITH PASSWORD
+            </button>
+
+        </form>
+
+        <button type="button" class="passkey-btn" id="passkeyLoginButton">
+            LOGIN WITH FINGERPRINT / PASSKEY
         </button>
 
-    </form>
+    </section>
+
+    <section id="passkeySetup">
+
+        <h3>Secure Your NetBill Login</h3>
+
+        <p>
+            Register a passkey on this device to use fingerprint,
+            face recognition or your device PIN for future logins.
+        </p>
+
+        <button type="button" class="register-btn" id="registerPasskeyButton">
+            REGISTER THIS DEVICE
+        </button>
+
+        <button type="button" class="continue-btn" id="continueButton">
+            CONTINUE TO DASHBOARD
+        </button>
+
+    </section>
 
     <div id="message"></div>
 
@@ -141,28 +194,90 @@ button {
 
 <script>
 
+const db = window.netbillSupabase;
+
 const loginForm = document.getElementById("loginForm");
 const loginButton = document.getElementById("loginButton");
+const passkeyLoginButton = document.getElementById("passkeyLoginButton");
+const registerPasskeyButton = document.getElementById("registerPasskeyButton");
+const continueButton = document.getElementById("continueButton");
+const loginSection = document.getElementById("loginSection");
+const passkeySetup = document.getElementById("passkeySetup");
 const message = document.getElementById("message");
+
+let authenticatedUser = null;
 
 function showMessage(text, type) {
     message.textContent = text;
     message.className = type;
 }
 
-function getDatabase() {
-
-    if (!window.supabase) {
-        throw new Error("Supabase library did not load. Check your internet connection.");
+function checkPasskeySupport() {
+    if (!window.isSecureContext || !navigator.credentials) {
+        throw new Error(
+            "Passkeys require a supported browser and a secure HTTPS connection."
+        );
     }
 
-    if (!window.netbillSupabase) {
-        throw new Error("Supabase configuration was not found.");
+    if (!db.auth.registerPasskey || !db.auth.signInWithPasskey) {
+        throw new Error(
+            "Passkey support is unavailable in the loaded Supabase library."
+        );
     }
-
-    return window.netbillSupabase;
 }
 
+async function verifyAdministrator(user) {
+
+    if (!user) {
+        throw new Error("No authenticated user was returned.");
+    }
+
+    const { data: company, error } = await db
+        .from("netbill_companies")
+        .select("id, company_name")
+        .eq("owner_id", user.id)
+        .maybeSingle();
+
+    if (error) throw error;
+
+    if (!company) {
+        await db.auth.signOut();
+
+        throw new Error(
+            "Your company record could not be found. Please check your company ownership."
+        );
+    }
+
+    localStorage.setItem("netbillCompanyId", company.id);
+    localStorage.setItem("netbillOwnerId", user.id);
+    localStorage.setItem("netbillOwnerEmail", user.email);
+    localStorage.setItem("netbillCloudCompanyName", company.company_name);
+
+    sessionStorage.setItem("netbillAdminLoggedIn", "true");
+
+    authenticatedUser = user;
+
+    return company;
+}
+
+function showLoginSuccess(user, company, allowRegistration) {
+
+    loginSection.style.display = "none";
+    passkeySetup.style.display = "block";
+
+    if (!allowRegistration) {
+        registerPasskeyButton.style.display = "none";
+    }
+
+    showMessage(
+        "Login successful!\n" +
+        "Administrator: " + user.email +
+        "\nCompany: " + company.company_name,
+        "success"
+    );
+}
+
+// NORMAL PASSWORD LOGIN
 loginForm.addEventListener("submit", async function(event) {
 
     event.preventDefault();
@@ -172,20 +287,17 @@ loginForm.addEventListener("submit", async function(event) {
 
     try {
 
-        const db = getDatabase();
-
         const email = document.getElementById("loginEmail")
             .value.trim().toLowerCase();
 
         const password = document.getElementById("loginPassword").value;
 
-        if (!email || !password) {
-            throw new Error("Enter your email and password.");
+        if (!db) {
+            throw new Error("Supabase connection was not found.");
         }
 
-        showMessage("Connecting to Supabase...", "success");
+        showMessage("Checking your login details...", "success");
 
-        // AUTHENTICATE OWNER
         const { data, error } = await db.auth.signInWithPassword({
             email: email,
             password: password
@@ -193,68 +305,107 @@ loginForm.addEventListener("submit", async function(event) {
 
         if (error) throw error;
 
-        const currentUser = data.user;
+        const company = await verifyAdministrator(data.user);
 
-        if (!currentUser) {
-            throw new Error("Login failed. No authenticated user was returned.");
-        }
-
-        showMessage(
-            "Login successful. Checking your company account...",
-            "success"
-        );
-
-        // FIND THE EXISTING COMPANY
-        const { data: company, error: companyError } = await db
-            .from("netbill_companies")
-            .select("id, company_name")
-            .eq("owner_id", currentUser.id)
-            .maybeSingle();
-
-        if (companyError) throw companyError;
-
-        if (!company) {
-            await db.auth.signOut();
-
-            throw new Error(
-                "Your company record could not be found. Please check your Supabase company ownership."
-            );
-        }
-
-        // SAVE OWNER AND COMPANY INFORMATION
-        localStorage.setItem("netbillCompanyId", company.id);
-        localStorage.setItem("netbillOwnerId", currentUser.id);
-        localStorage.setItem("netbillOwnerEmail", currentUser.email);
-        localStorage.setItem("netbillCloudCompanyName", company.company_name);
-
-        // KEEP EXISTING DASHBOARD SECURITY CHECK WORKING
-        sessionStorage.setItem("netbillAdminLoggedIn", "true");
-
-        showMessage(
-            "SUCCESS!\n\n" +
-            "Connected as: " + currentUser.email +
-            "\nCompany: " + company.company_name +
-            "\n\nOpening NetBill dashboard...",
-            "success"
-        );
-
-        setTimeout(function() {
-            window.location.href = "index.html";
-        }, 1200);
+        showLoginSuccess(data.user, company, true);
 
     } catch (error) {
 
-        showMessage(
-            "LOGIN FAILED:\n" + error.message,
-            "error"
-        );
+        showMessage("LOGIN FAILED:\n" + error.message, "error");
 
     } finally {
 
         loginButton.disabled = false;
-        loginButton.textContent = "LOGIN";
+        loginButton.textContent = "LOGIN WITH PASSWORD";
 
     }
+
+});
+
+// PASSKEY LOGIN
+passkeyLoginButton.addEventListener("click", async function() {
+
+    passkeyLoginButton.disabled = true;
+    passkeyLoginButton.textContent = "VERIFYING PASSKEY...";
+
+    try {
+
+        checkPasskeySupport();
+
+        showMessage("Waiting for your device authentication...", "success");
+
+        const { data, error } = await db.auth.signInWithPasskey();
+
+        if (error) throw error;
+
+        const company = await verifyAdministrator(data.user);
+
+        showLoginSuccess(data.user, company, false);
+
+        showMessage(
+            "Passkey login successful!\nWelcome back, " + data.user.email,
+            "success"
+        );
+
+    } catch (error) {
+
+        showMessage("PASSKEY LOGIN FAILED:\n" + error.message, "error");
+
+    } finally {
+
+        passkeyLoginButton.disabled = false;
+        passkeyLoginButton.textContent = "LOGIN WITH FINGERPRINT / PASSKEY";
+
+    }
+
+});
+
+// REGISTER THIS DEVICE
+registerPasskeyButton.addEventListener("click", async function() {
+
+    registerPasskeyButton.disabled = true;
+    registerPasskeyButton.textContent = "REGISTERING...";
+
+    try {
+
+        if (!authenticatedUser) {
+            throw new Error("Please log in with your password first.");
+        }
+
+        checkPasskeySupport();
+
+        const { data, error } = await db.auth.registerPasskey();
+
+        if (error) throw error;
+
+        showMessage(
+            "SUCCESS! Your passkey has been registered.\n" +
+            "You can now use this device to log in to NetBill.",
+            "success"
+        );
+
+        registerPasskeyButton.textContent = "PASSKEY REGISTERED";
+
+    } catch (error) {
+
+        showMessage("REGISTRATION FAILED:\n" + error.message, "error");
+
+        registerPasskeyButton.disabled = false;
+        registerPasskeyButton.textContent = "REGISTER THIS DEVICE";
+
+    }
+
+});
+
+// OPEN DASHBOARD
+continueButton.addEventListener("click", function() {
+
+    if (!authenticatedUser) {
+        showMessage("Please log in first.", "error");
+        return;
+    }
+
+    window.location.href = "index.html";
 
 });
 
