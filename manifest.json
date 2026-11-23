@@ -3,13 +3,24 @@
   "id": "./",
   "name": "NetBill ISP Billing System",
   "short_name": "NetBill",
-  "description": "Internet Service Provider Billing and Management System",
+  "description": "NetBill is an Internet Service Provider billing and management system for managing customers, subscriptions, payments, invoices and business operations.",
+  "lang": "en",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "portrait",
   "background_color": "#071b49",
   "theme_color": "#071b49",
+  "categories": [
+    "business",
+    "finance",
+    "productivity"
+  ],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "./netbill-icon-192.png",

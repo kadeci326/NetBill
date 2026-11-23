@@ -2,533 +2,429 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NetBill - ISP Billing System</title>
-    <meta name="theme-color" content="#123456">
-    <meta name="description" content="NetBill ISP Billing and Management System">
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>NetBill | ISP Billing and Management System</title>
+
+<meta name="description" content="NetBill is an ISP billing and management system that helps internet service providers manage customers, subscriptions, payments, invoices and business operations.">
+
+<meta name="keywords" content="NetBill, ISP billing system, internet service provider software, ISP customer management, billing and invoicing software">
+
+<meta name="author" content="NetBill">
+
+<meta name="robots" content="index, follow">
+
+<link rel="canonical" href="https://kadeci326.github.io/NetBill/">
+
+<meta name="theme-color" content="#071b49">
+<link rel="manifest" href="manifest.json">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="NetBill | ISP Billing and Management System">
+<meta property="og:description" content="Manage ISP customers, subscriptions, payments and invoices with NetBill.">
+<meta property="og:url" content="https://kadeci326.github.io/NetBill/">
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="NetBill ISP Billing System">
+<meta name="twitter:description" content="A billing and management solution for Internet Service Providers.">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "NetBill",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web browser",
+  "description": "An ISP billing and management system for managing customers, subscriptions, payments and invoices.",
+  "url": "https://kadeci326.github.io/NetBill/"
+}
+</script>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    color: #1b2940;
+    background: #f5f8fc;
+    line-height: 1.6;
+}
+
+header {
+    background: #071b49;
+    color: white;
+    padding: 18px 7%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.logo {
+    font-size: 27px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+nav a:hover {
+    color: #65c8ff;
+}
+
+.hero {
+    background: linear-gradient(135deg, #071b49, #12569b);
+    color: white;
+    text-align: center;
+    padding: 100px 20px 90px;
+}
+
+.hero-content {
+    max-width: 850px;
+    margin: auto;
+}
+
+.hero h1 {
+    font-size: clamp(34px, 6vw, 55px);
+    line-height: 1.15;
+    margin-bottom: 22px;
+}
+
+.hero p {
+    font-size: 19px;
+    color: #e2edff;
+    margin-bottom: 30px;
+}
+
+.actions {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-block;
+    padding: 14px 25px;
+    border-radius: 7px;
+    text-decoration: none;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.btn-primary {
+    background: #ffffff;
+    color: #071b49;
+}
+
+.btn-secondary {
+    background: #168447;
+    color: white;
+}
+
+.btn:hover {
+    opacity: 0.88;
+}
+
+section {
+    padding: 65px 7%;
+}
+
+.section-title {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.section-title h2 {
+    color: #071b49;
+    font-size: 30px;
+    margin-bottom: 10px;
+}
+
+.section-title p {
+    color: #667085;
+}
+
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 22px;
+    max-width: 1150px;
+    margin: auto;
+}
+
+.feature {
+    background: white;
+    padding: 27px;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.05);
+}
+
+.feature .icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+}
+
+.feature h3 {
+    color: #123b68;
+    margin-bottom: 10px;
+}
+
+.feature p {
+    color: #667085;
+}
+
+.access {
+    background: #eaf1fa;
+    text-align: center;
+}
+
+.access p {
+    margin: 12px 0 25px;
+    color: #566477;
+}
+
+.access .actions {
+    margin-top: 20px;
+}
+
+.access .btn-primary {
+    background: #071b49;
+    color: white;
+}
+
+.access .btn-secondary {
+    background: #168447;
+}
+
+.install-note {
+    font-size: 14px;
+    color: #667085;
+    margin-top: 18px;
+}
+
+footer {
+    background: #071b49;
+    color: white;
+    text-align: center;
+    padding: 25px 15px;
+}
+
+footer p {
+    font-size: 14px;
+    color: #d5e2f5;
+}
+
+@media (max-width: 600px) {
+    header {
+        justify-content: center;
+        text-align: center;
+    }
+
+    nav {
+        justify-content: center;
+    }
+
+    .hero {
+        padding: 75px 20px;
+    }
+
+    section {
+        padding: 50px 6%;
+    }
+}
+</style>
 </head>
+
 <body>
 
-<div class="app-container">
+<header>
+    <div class="logo">NETBILL</div>
 
-    <aside class="sidebar">
-        <h2>NETBILL</h2>
-        <p>ISP MANAGEMENT</p>
-        <nav>
-            <button class="nav-button active" data-page="dashboard">Dashboard</button>
-            <button class="nav-button" data-page="customers">Customers</button>
-            <button class="nav-button" data-page="routers">Router Management</button>
-            <button class="nav-button" data-page="hotspot">Hotspot</button>
-            <button class="nav-button" data-page="vouchers">Hotspot Vouchers</button>
-            <button class="nav-button" data-page="pppoe">PPPoE</button>
-            <button class="nav-button" data-page="packages">Internet Packages</button>
-            <button class="nav-button" data-page="payments">Payments</button>
-            <button class="nav-button" data-page="invoices">Invoices</button>
-            <button class="nav-button" data-page="reports">Reports</button>
-            <button class="nav-button" data-page="settings">Settings</button>
-        </nav>
-    </aside>
+    <nav>
+        <a href="#home">Home</a>
+        <a href="#features">Features</a>
+        <a href="#access">Access NetBill</a>
+    </nav>
+</header>
 
-    <main class="main-content">
+<main>
 
-        <header class="top-header">
-            <h1>NetBill Management System</h1>
-            <p>Internet Service Provider Billing & Management</p>
-        </header>
+<section class="hero" id="home">
+    <div class="hero-content">
 
-        <!-- DASHBOARD -->
-        <section class="page" id="dashboard">
-            <h2>Dashboard</h2>
-            <div class="dashboard-cards">
-                <div class="card"><h3>Total Customers</h3><p id="totalCustomers">0</p></div>
-                <div class="card"><h3>Active Customers</h3><p id="activeCustomers">0</p></div>
-                <div class="card"><h3>Expired Customers</h3><p id="expiredCustomers">0</p></div>
-                <div class="card"><h3>Total Revenue</h3><p id="totalRevenue">Ksh 0.00</p></div>
-            </div>
-        </section>
+        <h1>Manage Your Internet Business Smarter</h1>
 
-        <!-- CUSTOMERS -->
-        <section class="page" id="customers" style="display:none;">
-            <h2>Customer Management</h2>
-            <div class="form-container">
-                <h3>Register New Customer</h3>
-                <form id="customerForm">
-                    <label>Customer Name</label>
-                    <input type="text" id="customerName" required>
-                    <label>Phone Number</label>
-                    <input type="tel" id="customerPhone" required>
-                    <label>Connection Type</label>
-                    <select id="connectionType" required>
-                        <option value="">Select Connection</option>
-                        <option value="Hotspot">Hotspot</option>
-                        <option value="PPPoE">PPPoE</option>
-                    </select>
-                    <label>Internet Package</label>
-                    <select id="customerPackage" required>
-                        <option value="">Select Package</option>
-                    </select>
-                    <label>Subscription Start Date</label>
-                    <input type="date" id="customerStartDate" required>
-                    <label>Subscription Expiry Date</label>
-                    <input type="date" id="customerExpiryDate" required>
-                    <button type="submit">Add Customer</button>
-                    <p id="customerMessage"></p>
-                </form>
-            </div>
-            <div class="table-container">
-                <h3>Registered Customers</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th><th>Phone</th><th>Connection</th>
-                            <th>Package</th><th>Start Date</th><th>Expiry Date</th>
-                            <th>Status</th><th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="customerList"></tbody>
-                </table>
-            </div>
-        </section>
+        <p>
+            NetBill is an ISP billing and management system designed
+            to help Internet Service Providers manage customers,
+            subscriptions, payments and invoices in one place.
+        </p>
 
-        <!-- ROUTERS -->
-        <section class="page" id="routers" style="display:none;">
-            <h2>Router Management</h2>
-            <div class="card">
-                <h3>MikroTik Router Management</h3>
-                <p>Register and manage multiple MikroTik routers running compatible RouterOS versions.</p>
-                <p>Router credentials will be handled securely through the NetBill backend.</p>
-            </div>
-            <div class="form-container">
-                <h3>Register New Router</h3>
-                <form id="routerForm">
-                    <label>Router Name</label>
-                    <input type="text" id="routerName" placeholder="e.g. Main Office Router" required>
-                    <label>Router IP Address or Hostname</label>
-                    <input type="text" id="routerIP" placeholder="e.g. 192.168.88.1" required>
-                    <label>Router API Port</label>
-                    <input type="number" id="routerPort" value="8729" min="1" max="65535" required>
-                    <label>Router Model (Optional)</label>
-                    <input type="text" id="routerModel" placeholder="e.g. hEX, RB4011, CCR">
-                    <p class="router-security-note">Secure API credentials will be configured separately. Do not enter your router password here.</p>
-                    <button type="submit">Register Router</button>
-                    <p id="routerMessage"></p>
-                </form>
-            </div>
-            <div class="table-container">
-                <h3>Registered MikroTik Routers</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Router Name</th><th>IP Address</th><th>API Port</th>
-                            <th>Model</th><th>RouterOS Version</th>
-                            <th>Connection Status</th><th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="routerList">
-                        <tr><td colspan="7">No routers registered yet.</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+        <div class="actions">
+            <a href="admin-login.html" class="btn btn-primary">
+                Administrator Login
+            </a>
 
-        <!-- HOTSPOT -->
-        <section class="page" id="hotspot" style="display:none;">
-            <h2>Hotspot Management</h2>
-            <div class="dashboard-cards">
-                <div class="card"><h3>Total Hotspot Accounts</h3><p id="hotspotTotal">0</p></div>
-                <div class="card"><h3>Active Accounts</h3><p id="hotspotActive">0</p></div>
-                <div class="card"><h3>Suspended Accounts</h3><p id="hotspotSuspended">0</p></div>
-                <div class="card"><h3>Expired Accounts</h3><p id="hotspotExpired">0</p></div>
-            </div>
-            <div class="card">
-                <h3>About Hotspot Management</h3>
-                <p>Create and manage Wi-Fi Hotspot customer accounts, assign internet packages and monitor subscription status.</p>
-                <p><strong>Router connection:</strong> Actual MikroTik Hotspot provisioning will be connected through the secure NetBill backend.</p>
-            </div>
-            <div class="form-container">
-                <h3>Create Hotspot Account</h3>
-                <form id="hotspotForm">
-                    <label>Select Customer</label>
-                    <select id="hotspotCustomer" required>
-                        <option value="">Select Hotspot Customer</option>
-                    </select>
-                    <label>Hotspot Username</label>
-                    <input type="text" id="hotspotUsername" placeholder="e.g. hotspot001" required>
-                    <label>Internet Package</label>
-                    <select id="hotspotPackage" required>
-                        <option value="">Select Hotspot Package</option>
-                    </select>
-                    <label>Subscription Start Date</label>
-                    <input type="date" id="hotspotStartDate" required>
-                    <label>Subscription Expiry Date</label>
-                    <input type="date" id="hotspotExpiryDate" required>
-                    <label>Account Status</label>
-                    <select id="hotspotStatus" required>
-                        <option value="Pending">Pending</option>
-                        <option value="Active">Active</option>
-                        <option value="Suspended">Suspended</option>
-                        <option value="Expired">Expired</option>
-                    </select>
-                    <p id="hotspotMessage"></p>
-                    <button type="submit">Create Hotspot Account</button>
-                </form>
-            </div>
-            <div class="table-container">
-                <h3>Registered Hotspot Accounts</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Customer</th><th>Username</th><th>Package</th>
-                            <th>Start Date</th><th>Expiry Date</th><th>Status</th><th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="hotspotList">
-                        <tr><td colspan="7">No Hotspot accounts registered yet.</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+            <button id="installButton" class="btn btn-secondary" hidden>
+                Install NetBill App
+            </button>
+        </div>
 
-        <!-- VOUCHERS -->
-        <section class="page" id="vouchers" style="display:none;">
-            <h2>Hotspot Voucher Management</h2>
-            <div class="dashboard-cards">
-                <div class="card"><h3>Total Vouchers</h3><p id="voucherTotal">0</p></div>
-                <div class="card"><h3>Unused Vouchers</h3><p id="voucherUnused">0</p></div>
-                <div class="card"><h3>Used Vouchers</h3><p id="voucherUsed">0</p></div>
-                <div class="card"><h3>Expired Vouchers</h3><p id="voucherExpired">0</p></div>
-            </div>
-            <div class="card">
-                <h3>About Hotspot Vouchers</h3>
-                <p>Generate individual or bulk Wi-Fi access vouchers, assign Hotspot packages, set validity periods and monitor voucher usage.</p>
-                <p><strong>Important:</strong> Vouchers will initially be managed in NetBill's database. Actual MikroTik login and access enforcement will be added through the secure backend later.</p>
-            </div>
-            <div class="form-container">
-                <h3>Generate Hotspot Vouchers</h3>
-                <form id="voucherForm">
-                    <label>Hotspot Internet Package</label>
-                    <select id="voucherPackage" required>
-                        <option value="">Select Hotspot Package</option>
-                    </select>
-                    <label>Number of Vouchers</label>
-                    <input type="number" id="voucherCount" min="1" max="100" value="1" required>
-                    <label>Voucher Validity (Minutes)</label>
-                    <input type="number" id="voucherDuration" min="1" value="1440" required>
-                    <label>Voucher Price (Ksh)</label>
-                    <input type="number" id="voucherPrice" min="0" step="0.01" value="0" required>
-                    <label>Voucher Expiration Date (Optional)</label>
-                    <input type="date" id="voucherExpiry">
-                    <p id="voucherMessage"></p>
-                    <button type="submit">Generate Vouchers</button>
-                </form>
-            </div>
-            <div class="table-container">
-                <h3>Generated Hotspot Vouchers</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Voucher Code</th><th>Package</th><th>Duration</th>
-                            <th>Price</th><th>Status</th><th>Created</th><th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="voucherList">
-                        <tr><td colspan="7">No vouchers generated yet.</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+    </div>
+</section>
 
-        <!-- PPPOE -->
-        <section class="page" id="pppoe" style="display:none;">
-            <h2>PPPoE Management</h2>
-            <div class="dashboard-cards">
-                <div class="card"><h3>Total PPPoE Accounts</h3><p id="pppoeTotal">0</p></div>
-                <div class="card"><h3>Active Accounts</h3><p id="pppoeActive">0</p></div>
-                <div class="card"><h3>Suspended Accounts</h3><p id="pppoeSuspended">0</p></div>
-                <div class="card"><h3>Expired Accounts</h3><p id="pppoeExpired">0</p></div>
-            </div>
-            <div class="card">
-                <h3>About PPPoE</h3>
-                <p>Create and manage PPPoE customer accounts, assign internet packages and monitor subscription status.</p>
-                <p><strong>Router connection:</strong> Real MikroTik provisioning will be added through the secure NetBill backend.</p>
-            </div>
-            <div class="form-container">
-                <h3>Create PPPoE Account</h3>
-                <form id="pppoeForm">
-                    <label>Select Customer</label>
-                    <select id="pppoeCustomer" required>
-                        <option value="">Select PPPoE Customer</option>
-                    </select>
-                    <label>PPPoE Username</label>
-                    <input type="text" id="pppoeUsername" placeholder="e.g. customer001" required>
-                    <label>Internet Package</label>
-                    <select id="pppoePackage" required>
-                        <option value="">Select PPPoE Package</option>
-                    </select>
-                    <label>Subscription Start Date</label>
-                    <input type="date" id="pppoeStartDate" required>
-                    <label>Subscription Expiry Date</label>
-                    <input type="date" id="pppoeExpiryDate" required>
-                    <label>Account Status</label>
-                    <select id="pppoeStatus" required>
-                        <option value="Pending">Pending</option>
-                        <option value="Active">Active</option>
-                        <option value="Suspended">Suspended</option>
-                        <option value="Expired">Expired</option>
-                    </select>
-                    <p id="pppoeMessage"></p>
-                    <button type="submit">Create PPPoE Account</button>
-                </form>
-            </div>
-            <div class="table-container">
-                <h3>Registered PPPoE Accounts</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Customer</th><th>Username</th><th>Package</th>
-                            <th>Start Date</th><th>Expiry Date</th><th>Status</th><th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pppoeList">
-                        <tr><td colspan="7">No PPPoE accounts registered yet.</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+<section id="features">
 
-        <!-- PACKAGES -->
-        <section class="page" id="packages" style="display:none;">
-            <h2>Internet Package Management</h2>
-            <div class="form-container">
-                <h3>Add Internet Package</h3>
-                <form id="packageForm">
-                    <label>Package Name</label>
-                    <input type="text" id="packageName" required>
-                    <label>Connection Type</label>
-                    <select id="packageConnection" required>
-                        <option value="">Select Connection</option>
-                        <option value="Hotspot">Hotspot</option>
-                        <option value="PPPoE">PPPoE</option>
-                    </select>
-                    <label>Internet Speed</label>
-                    <input type="text" id="packageSpeed" placeholder="e.g. 10 Mbps" required>
-                    <label>Package Price (Ksh)</label>
-                    <input type="number" id="packagePrice" min="1" step="0.01" required>
-                    <label>Package Duration</label>
-                    <select id="packageDuration" required>
-                        <option value="">Select Duration</option>
-                        <option value="Daily">Daily</option>
-                        <option value="Weekly">Weekly</option>
-                        <option value="Monthly">Monthly</option>
-                    </select>
-                    <button type="submit">Add Package</button>
-                    <p id="packageMessage"></p>
-                </form>
-            </div>
-            <div class="table-container">
-                <h3>Available Internet Packages</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Package</th><th>Connection</th><th>Speed</th>
-                            <th>Price</th><th>Duration</th><th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="packageList"></tbody>
-                </table>
-            </div>
-        </section>
+    <div class="section-title">
+        <h2>Everything You Need to Manage Your ISP</h2>
+        <p>Organise your daily internet service business operations.</p>
+    </div>
 
-        <!-- PAYMENTS -->
-        <section class="page" id="payments" style="display:none;">
-            <h2>Payment Management</h2>
-            <div class="form-container">
-                <h3>Record Customer Payment</h3>
+    <div class="features">
 
-                <form id="paymentForm">
-                    <label>Select Customer</label>
-                    <select id="paymentCustomer" required>
-                        <option value="">Select Customer</option>
-                    </select>
+        <div class="feature">
+            <div class="icon">👥</div>
+            <h3>Customer Management</h3>
+            <p>Manage customer information, accounts and service status.</p>
+        </div>
 
-                    <label>Payment Amount (Ksh)</label>
-                    <input type="number" id="paymentAmount" min="1" step="0.01" required>
+        <div class="feature">
+            <div class="icon">📦</div>
+            <h3>Internet Packages</h3>
+            <p>Organise your internet packages and subscription records.</p>
+        </div>
 
-                    <label>Payment Method</label>
-                    <select id="paymentMethod" required>
-                        <option value="">Select Method</option>
-                        <option value="M-Pesa">M-Pesa</option>
-                        <option value="Cash">Cash</option>
-                        <option value="Bank">Bank</option>
-                    </select>
+        <div class="feature">
+            <div class="icon">💳</div>
+            <h3>Payment Management</h3>
+            <p>Record customer payments and track payment information.</p>
+        </div>
 
-                    <label>Payment Reference</label>
-                    <input type="text" id="paymentReference">
+        <div class="feature">
+            <div class="icon">🧾</div>
+            <h3>Invoices and Receipts</h3>
+            <p>Manage billing records, invoices and payment receipts.</p>
+        </div>
 
-                    <button type="submit">Record Payment</button>
-                    <p id="paymentMessage"></p>
-                </form>
+        <div class="feature">
+            <div class="icon">📊</div>
+            <h3>Business Reports</h3>
+            <p>Review revenue, customer activity and outstanding balances.</p>
+        </div>
 
-                <div id="netbillPhoneWrapper" style="margin-top:15px;margin-bottom:15px;">
-                    <label for="netbillPaymentPhone"
-                        style="display:block;font-weight:600;margin-bottom:7px;">
-                        Customer Phone Number (M-Pesa)
-                    </label>
+        <div class="feature">
+            <div class="icon">📱</div>
+            <h3>Customer Self-Service</h3>
+            <p>Give customers access to their available customer portal.</p>
+        </div>
 
-                    <input
-                        type="tel"
-                        id="netbillPaymentPhone"
-                        placeholder="e.g. 0712345678"
-                        autocomplete="tel"
-                        style="width:100%;box-sizing:border-box;padding:12px;
-                        border:1px solid #ccc;border-radius:8px;font-size:16px;"
-                    >
+    </div>
 
-                    <small style="display:block;margin-top:6px;color:#666;">
-                        Enter the phone number that should receive the M-Pesa prompt.
-                    </small>
-                </div>
+</section>
 
-                <div style="margin-top:15px;position:relative;z-index:99999;">
-                    <button
-                        type="button"
-                        id="netbillStkButton"
-                        onclick="window.dispatchEvent(new Event('netbill-mpesa-click'))"
-                        style="display:block !important;width:100%;padding:15px;
-                        background:#168447;color:white;border:none;border-radius:8px;
-                        font-size:15px;font-weight:bold;cursor:pointer;pointer-events:auto;">
-                        Pay with M-Pesa (STK Push)
-                    </button>
+<section class="access" id="access">
 
-                    <p id="netbillStkMessage"></p>
-                </div>
+    <div class="section-title">
+        <h2>Access NetBill</h2>
+        <p>Sign in to access your NetBill services.</p>
+    </div>
 
-            </div>
+    <div class="actions">
 
-            <div class="table-container">
-                <h3>Payment History</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Customer</th><th>Amount</th><th>Method</th>
-                            <th>Reference</th><th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody id="paymentList"></tbody>
-                </table>
-            </div>
-        </section>
+        <a href="admin-login.html" class="btn btn-primary">
+            Administrator Login
+        </a>
 
-        <!-- INVOICES -->
-        <section class="page" id="invoices" style="display:none;">
-            <h2>Invoice Management</h2>
-            <div class="form-container">
-                <h3>Generate New Invoice</h3>
-                <form id="invoiceForm">
-                    <label>Select Customer</label>
-                    <select id="invoiceCustomer" required>
-                        <option value="">Select Customer</option>
-                    </select>
-                    <label>Invoice Description</label>
-                    <input type="text" id="invoiceDescription" required>
-                    <label>Invoice Amount (Ksh)</label>
-                    <input type="number" id="invoiceAmount" min="1" step="0.01" required>
-                    <label>Due Date</label>
-                    <input type="date" id="invoiceDueDate" required>
-                    <button type="submit">Generate Invoice</button>
-                    <p id="invoiceMessage"></p>
-                </form>
-            </div>
-            <div class="table-container">
-                <h3>Generated Invoices</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Invoice Number</th><th>Customer</th><th>Description</th>
-                            <th>Amount</th><th>Due Date</th><th>Status</th><th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="invoiceList"></tbody>
-                </table>
-            </div>
-        </section>
+        <a href="customer-portal-login.html" class="btn btn-secondary">
+            Customer Portal
+        </a>
 
-        <!-- REPORTS -->
-        <section class="page" id="reports" style="display:none;">
-            <h2>Reports</h2>
-            <div class="card">
-                <h3>Download Your NetBill Data</h3>
-                <p>Download your records and open them using Microsoft Excel.</p>
-                <button type="button" data-export="customers">Export Customers</button>
-                <button type="button" data-export="payments">Export Payments</button>
-                <button type="button" data-export="invoices">Export Invoices</button>
-            </div>
-        </section>
+    </div>
 
-        <!-- SETTINGS -->
-        <section class="page" id="settings" style="display:none;">
-            <h2>Settings</h2>
-            <div class="card">
-                <h3>System Information</h3>
-                <p>Application: NetBill</p>
-                <p>Version: 1.0</p>
-                <p>System: ISP Billing and Management</p>
-            </div>
-        </section>
+    <p class="install-note">
+        You can also install NetBill on a supported device for convenient access.
+    </p>
 
-    </main>
-</div>
+</section>
 
-<!-- SUPABASE CONNECTION -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="supabase-config.js"></script>
+</main>
 
-<!-- JAVASCRIPT FILES -->
-<script src="script.js" defer></script>
-<script src="customer-welcome-sms.js" defer></script>
-<script src="subscription-alerts.js" defer></script>
-<script src="automatic-invoices.js" defer></script>
-<script src="customer-payment-tracking.js" defer></script>
-<script src="customer-account-balances.js" defer></script>
-<script src="data-export.js" defer></script>
-<script src="sms-notifications.js" defer></script>
-<script src="payment-notifications.js" defer></script>
-<script src="admin-guard.js" defer></script>
-<script src="backup-restore.js" defer></script>
-<script src="payment-receipts.js" defer></script>
-<script src="company-profile.js" defer></script>
-<script src="netbill-cloud.js" defer></script>
-<script src="mpesa-integration.js" defer></script>
-<script src="router-management.js" defer></script>
-<script src="pppoe-management.js" defer></script>
-<script src="hotspot-management.js" defer></script>
-<script src="hotspot-voucher-management.js" defer></script>
-<script src="voucher-export.js" defer></script>
-<script src="dashboard-analytics.js" defer></script>
-<script src="advanced-reports.js" defer></script>
-<script src="automatic-suspension.js" defer></script>
-<script src="automatic-reconnection.js" defer></script>
-<script src="automatic-subscription-renewal.js" defer></script>
-<script src="subscription-renewal-history.js" defer></script>
-<script src="customer-payment-statement.js" defer></script>
-<script src="customer-support.js" defer></script>
-<script src="support-dashboard.js" defer></script>
-<script src="communication-centre.js" defer></script>
+<footer>
+    <p>© <span id="year"></span> NetBill. All rights reserved.</p>
+    <p>ISP Billing and Management System</p>
+</footer>
 
 <script>
+document.getElementById("year").textContent =
+    new Date().getFullYear();
+
+let deferredInstallPrompt = null;
+
+const installButton = document.getElementById("installButton");
+
+window.addEventListener("beforeinstallprompt", function(event) {
+
+    event.preventDefault();
+
+    deferredInstallPrompt = event;
+
+    installButton.hidden = false;
+
+});
+
+installButton.addEventListener("click", async function() {
+
+    if (!deferredInstallPrompt) {
+        return;
+    }
+
+    deferredInstallPrompt.prompt();
+
+    await deferredInstallPrompt.userChoice;
+
+    deferredInstallPrompt = null;
+
+    installButton.hidden = true;
+
+});
+
+window.addEventListener("appinstalled", function() {
+
+    installButton.hidden = true;
+
+});
+
 if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () {
+
+    window.addEventListener("load", function() {
+
         navigator.serviceWorker.register("./service-worker.js")
-            .then(function () {
-                console.log("NetBill app is ready for installation.");
-            })
-            .catch(function (error) {
+            .catch(function(error) {
                 console.error("NetBill service worker error:", error);
             });
+
     });
+
 }
 </script>
 
