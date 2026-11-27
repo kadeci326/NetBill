@@ -9,14 +9,13 @@
     <meta name="google-site-verification"
           content="Mk3hPkUNNJrMQEvbUjt1BLCSIBpQstTwU5j1igEHeDU">
 
-    <!-- SEO INFORMATION -->
     <title>NetBill - ISP Billing and Management System</title>
 
     <meta name="description"
-          content="NetBill is an Internet Service Provider billing and management system for managing customers, subscriptions, payments, invoices, internet packages and business operations.">
+          content="NetBill is an Internet Service Provider billing and management system for customers, subscriptions, payments, invoices and business operations.">
 
     <meta name="keywords"
-          content="NetBill, ISP billing system, internet billing software, ISP management system, customer management, internet subscriptions, Kenya">
+          content="NetBill, ISP billing system, internet billing software, ISP management system, Kenya">
 
     <meta name="robots" content="index, follow">
     <meta name="author" content="NetBill">
@@ -26,30 +25,18 @@
 
     <meta name="theme-color" content="#071b49">
 
-    <!-- SOCIAL MEDIA PREVIEW -->
     <meta property="og:title"
           content="NetBill - ISP Billing and Management System">
-
     <meta property="og:description"
           content="Manage your internet customers, subscriptions, payments and invoices using NetBill.">
-
     <meta property="og:type" content="website">
-
     <meta property="og:url"
           content="https://kadeci326.github.io/NetBill/">
 
-    <meta name="twitter:card" content="summary">
-
-    <!-- PWA -->
     <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/png" href="./netbill-icon-192.png">
+    <link rel="apple-touch-icon" href="./netbill-icon-192.png">
 
-    <link rel="icon" type="image/png"
-          href="./netbill-icon-192.png">
-
-    <link rel="apple-touch-icon"
-          href="./netbill-icon-192.png">
-
-    <!-- STRUCTURED DATA FOR SEARCH ENGINES -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -57,7 +44,7 @@
         "name": "NetBill",
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web, Android",
-        "description": "An Internet Service Provider billing and management system for managing customers, subscriptions, payments and invoices.",
+        "description": "An Internet Service Provider billing and management system.",
         "url": "https://kadeci326.github.io/NetBill/"
     }
     </script>
@@ -90,7 +77,6 @@
         .logo {
             font-size: 27px;
             font-weight: bold;
-            letter-spacing: 1px;
         }
 
         nav {
@@ -103,10 +89,6 @@
             color: white;
             text-decoration: none;
             font-weight: bold;
-        }
-
-        nav a:hover {
-            color: #38bdf8;
         }
 
         .hero {
@@ -140,23 +122,19 @@
             font-size: 15px;
         }
 
-        .button-primary {
+        .primary {
             background: #0ea5e9;
             color: white;
         }
 
-        .button-secondary {
+        .secondary {
             background: white;
             color: #071b49;
         }
 
-        .button-install {
+        .install {
             background: #16a34a;
             color: white;
-        }
-
-        .button:hover {
-            opacity: 0.88;
         }
 
         .section {
@@ -170,7 +148,7 @@
             color: #071b49;
         }
 
-        .section-intro {
+        .intro {
             max-width: 750px;
             margin: 0 auto 35px;
             color: #64748b;
@@ -183,19 +161,19 @@
             margin-top: 35px;
         }
 
-        .feature {
+        .feature, .access-card {
             background: white;
             padding: 27px 20px;
             border-radius: 12px;
             box-shadow: 0 4px 16px #0000000c;
         }
 
-        .feature h3 {
+        .feature h3, .access-card h3 {
             color: #075985;
             margin-bottom: 10px;
         }
 
-        .feature p {
+        .feature p, .access-card p {
             color: #64748b;
         }
 
@@ -204,22 +182,8 @@
         }
 
         .access-card {
-            background: white;
             max-width: 650px;
             margin: 15px auto;
-            padding: 28px;
-            border-radius: 12px;
-            box-shadow: 0 4px 16px #0000000c;
-        }
-
-        .access-card h3 {
-            color: #071b49;
-            margin-bottom: 10px;
-        }
-
-        .access-card p {
-            color: #64748b;
-            margin-bottom: 12px;
         }
 
         footer {
@@ -227,10 +191,6 @@
             color: white;
             text-align: center;
             padding: 25px 15px;
-        }
-
-        footer p {
-            margin: 5px;
         }
 
         #installButton {
@@ -255,10 +215,6 @@
                 font-size: 31px;
             }
 
-            .hero p {
-                font-size: 16px;
-            }
-
             .section {
                 padding: 45px 18px;
             }
@@ -280,9 +236,7 @@
 
 <main>
 
-    <!-- HOMEPAGE -->
     <section class="hero" id="home">
-
         <h1>Welcome to NetBill</h1>
 
         <p>
@@ -292,32 +246,25 @@
             from one convenient platform.
         </p>
 
-        <a href="admin-login.html"
-           class="button button-primary">
+        <a href="admin-login.html" class="button primary">
             Administrator Login
         </a>
 
-        <a href="customer-portal-login.html"
-           class="button button-secondary">
+        <a href="customer-portal-login.html" class="button secondary">
             Customer Portal
         </a>
 
         <br>
 
-        <button id="installButton"
-                class="button button-install"
-                type="button">
+        <button id="installButton" class="button install" type="button">
             Install NetBill App
         </button>
-
     </section>
 
-    <!-- FEATURES -->
     <section class="section" id="features">
-
         <h2>Manage Your ISP Business Easily</h2>
 
-        <p class="section-intro">
+        <p class="intro">
             NetBill brings important internet service management
             activities together in one system.
         </p>
@@ -326,178 +273,113 @@
 
             <div class="feature">
                 <h3>Customer Management</h3>
-                <p>
-                    Register customers, manage their accounts
-                    and monitor subscription status.
-                </p>
+                <p>Register customers, manage accounts and monitor subscriptions.</p>
             </div>
 
             <div class="feature">
                 <h3>Internet Packages</h3>
-                <p>
-                    Create and manage internet packages,
-                    speeds, prices and durations.
-                </p>
+                <p>Create and manage internet packages, speeds and prices.</p>
             </div>
 
             <div class="feature">
                 <h3>Payment Management</h3>
-                <p>
-                    Record customer payments and monitor
-                    payment history.
-                </p>
+                <p>Record customer payments and monitor payment history.</p>
             </div>
 
             <div class="feature">
                 <h3>Invoice Management</h3>
-                <p>
-                    Generate and manage customer invoices
-                    and outstanding balances.
-                </p>
+                <p>Generate invoices and monitor outstanding balances.</p>
             </div>
 
             <div class="feature">
                 <h3>Reports and Analytics</h3>
-                <p>
-                    Review business performance, revenue
-                    and customer information.
-                </p>
+                <p>Review business performance, revenue and customer information.</p>
             </div>
 
             <div class="feature">
                 <h3>Customer Self-Service</h3>
-                <p>
-                    Give customers access to their own
-                    NetBill portal.
-                </p>
+                <p>Give customers access to their own NetBill portal.</p>
             </div>
 
         </div>
-
     </section>
 
-    <!-- LOGIN OPTIONS -->
     <section class="section access" id="access">
-
         <h2>Access NetBill</h2>
 
-        <p class="section-intro">
+        <p class="intro">
             Choose the appropriate portal to continue.
         </p>
 
         <div class="access-card">
-
             <h3>Administrator Portal</h3>
+            <p>Manage your ISP business, customers, subscriptions and payments.</p>
 
-            <p>
-                Manage your ISP business, customers,
-                subscriptions, payments and reports.
-            </p>
-
-            <a href="admin-login.html"
-               class="button button-primary">
+            <a href="admin-login.html" class="button primary">
                 Administrator Login
             </a>
-
         </div>
 
         <div class="access-card">
-
             <h3>Customer Portal</h3>
+            <p>Access your NetBill customer account using your registered details.</p>
 
-            <p>
-                Access your NetBill customer account
-                using your registered login details.
-            </p>
-
-            <a href="customer-portal-login.html"
-               class="button button-primary">
+            <a href="customer-portal-login.html" class="button primary">
                 Customer Login
             </a>
-
         </div>
-
     </section>
 
 </main>
 
 <footer>
     <p><strong>NETBILL</strong></p>
-
-    <p>
-        ISP Billing and Management System
-    </p>
-
-    <p>
-        &copy; <span id="currentYear"></span> NetBill.
-        All rights reserved.
-    </p>
+    <p>ISP Billing and Management System</p>
+    <p>&copy; <span id="currentYear"></span> NetBill. All rights reserved.</p>
 </footer>
 
 <script>
-    // CURRENT YEAR
     document.getElementById("currentYear").textContent =
         new Date().getFullYear();
 
-    // PWA INSTALLATION
     let deferredInstallPrompt = null;
 
-    const installButton =
-        document.getElementById("installButton");
+    const installButton = document.getElementById("installButton");
 
     window.addEventListener("beforeinstallprompt", function(event) {
-
         event.preventDefault();
-
         deferredInstallPrompt = event;
-
         installButton.style.display = "inline-block";
-
     });
 
     installButton.addEventListener("click", async function() {
-
         if (!deferredInstallPrompt) {
             alert("NetBill installation is not available in this browser right now.");
             return;
         }
 
         deferredInstallPrompt.prompt();
-
         await deferredInstallPrompt.userChoice;
 
         deferredInstallPrompt = null;
-
         installButton.style.display = "none";
-
     });
 
     window.addEventListener("appinstalled", function() {
-
         installButton.style.display = "none";
-
         deferredInstallPrompt = null;
-
     });
 
-    // SERVICE WORKER
     if ("serviceWorker" in navigator) {
-
         window.addEventListener("load", function() {
-
             navigator.serviceWorker.register("./service-worker.js")
                 .then(function() {
                     console.log("NetBill service worker registered.");
                 })
                 .catch(function(error) {
-                    console.error(
-                        "NetBill service worker error:",
-                        error
-                    );
+                    console.error("NetBill service worker error:", error);
                 });
-
         });
-
     }
 </script>
 
